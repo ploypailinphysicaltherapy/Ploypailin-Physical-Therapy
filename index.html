@@ -93,23 +93,44 @@
     .service-card-photo{ opacity:1; transform:none; transition:none; }
   }
 
-  /* --- workdays / queue availability widget --- */
-  .workday-list{display:flex;flex-wrap:wrap;gap:12px;}
-  .workday-chip{
-    display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);
-    border-radius:12px;padding:12px 16px;box-shadow:var(--shadow);min-width:180px;
+  /* --- workdays / queue availability widget: calendar layout --- */
+  .workday-calendar{width:100%;}
+  .workday-weekdays{
+    display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:8px;
   }
-  .workday-chip .wc-date{
-    display:flex;flex-direction:column;align-items:center;justify-content:center;
-    background:#ecfdf5;color:#059669;border-radius:10px;padding:6px 10px;min-width:48px;font-weight:700;
+  .workday-weekdays span{
+    text-align:center;font-size:.78rem;font-weight:700;color:var(--text-soft);padding:4px 0;
   }
-  .workday-chip .wc-date small{font-weight:500;font-size:.68rem;color:#047857;}
-  .workday-chip .wc-queue{font-size:.85rem;color:var(--text-soft);}
-  .workday-chip .wc-queue strong{color:#059669;font-weight:700;}
-  .workday-chip.is-full .wc-date{background:#fef2f2;color:#dc2626;}
-  .workday-chip.is-full .wc-date small{color:#b91c1c;}
-  .workday-chip.is-full .wc-queue strong{color:#dc2626;}
-  .workday-empty{color:var(--text-soft);font-size:.9rem;}
+  .workday-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;}
+  .workday-cell{
+    min-height:78px;border-radius:12px;border:1px solid var(--line);background:var(--card);
+    box-shadow:var(--shadow);display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:4px;padding:8px 4px;text-align:center;
+  }
+  .workday-cell.is-blank{background:transparent;border-color:transparent;box-shadow:none;}
+  .workday-cell .wc-num{font-size:1.05rem;font-weight:800;color:var(--text);}
+  .workday-cell .wc-status{font-size:.72rem;font-weight:600;line-height:1.2;}
+  .workday-cell.is-open .wc-num{color:#059669;}
+  .workday-cell.is-open .wc-status{color:#059669;}
+  .workday-cell.is-open.is-full .wc-num{color:#dc2626;}
+  .workday-cell.is-open.is-full .wc-status{color:#dc2626;}
+  .workday-cell.is-closed{background:#f9fafb;}
+  .workday-cell.is-closed .wc-num{color:#9ca3af;}
+  .workday-cell.is-closed .wc-status{color:#9ca3af;}
+  .workday-cell.is-today{border:2px solid #059669;}
+  .workday-legend{display:flex;flex-wrap:wrap;gap:16px;margin-top:16px;font-size:.82rem;color:var(--text-soft);}
+  .workday-legend span{display:inline-flex;align-items:center;gap:6px;}
+  .workday-legend i{width:12px;height:12px;border-radius:4px;display:inline-block;}
+  .workday-legend .lg-open{background:#ecfdf5;border:1px solid #059669;}
+  .workday-legend .lg-full{background:#fef2f2;border:1px solid #dc2626;}
+  .workday-legend .lg-closed{background:#f9fafb;border:1px solid var(--line);}
+  .workday-empty{color:var(--text-soft);font-size:.9rem;grid-column:1/-1;}
+  @media (max-width:640px){
+    .workday-cell{min-height:58px;padding:6px 2px;}
+    .workday-cell .wc-num{font-size:.88rem;}
+    .workday-cell .wc-status{font-size:.6rem;}
+    .workday-weekdays span{font-size:.68rem;}
+  }
 
   /* --- portfolio auto-slide carousel --- */
   .portfolio-viewport{
@@ -590,10 +611,20 @@
     <div class="section-head">
       <div class="eyebrow"><span class="material-icons-outlined">event_available</span>คิวว่างประจำเดือน</div>
       <h2 id="workdayMonthTitle">วันทำการเดือนนี้</h2>
-      <p>วันทำการที่เปิดให้บริการในเดือนนี้ พร้อมจำนวนคิวที่ยังสามารถจองได้ในแต่ละวัน (ไม่รวมวันหยุดเสาร์–อาทิตย์และวันหยุดนักขัตฤกษ์) ดึงข้อมูลจากปฏิทินของหน่วยงานโดยตรง</p>
+      <p>ปฏิทินวันทำการในเดือนนี้ พร้อมจำนวนคิวที่ยังสามารถจองได้ในแต่ละวัน (วันที่แรเงาคือวันหยุดเสาร์–อาทิตย์และวันหยุดนักขัตฤกษ์) ดึงข้อมูลจากปฏิทินของหน่วยงานโดยตรง</p>
     </div>
-    <div class="workday-list" id="workdayList">
-      <p class="workday-empty">กำลังโหลดข้อมูลวันทำการ...</p>
+    <div class="workday-calendar" id="workdayCalendar">
+      <div class="workday-weekdays">
+        <span>อา</span><span>จ</span><span>อ</span><span>พ</span><span>พฤ</span><span>ศ</span><span>ส</span>
+      </div>
+      <div class="workday-grid" id="workdayList">
+        <p class="workday-empty">กำลังโหลดข้อมูลวันทำการ...</p>
+      </div>
+      <div class="workday-legend">
+        <span><i class="lg-open"></i>มีคิวว่าง</span>
+        <span><i class="lg-full"></i>คิวเต็ม</span>
+        <span><i class="lg-closed"></i>วันหยุด</span>
+      </div>
     </div>
   </div>
 </section>
@@ -771,24 +802,48 @@
         listEl.innerHTML = '<p class="workday-empty">ไม่สามารถโหลดข้อมูลวันทำการได้ในขณะนี้ กรุณาลองใหม่ภายหลัง</p>';
         return;
       }
-      // เฉพาะวันทำการ — ไม่รวมวันเสาร์–อาทิตย์และวันหยุดนักขัตฤกษ์ (d.closed === true)
-      var workdays = data.days.filter(function(d){
-        return !d.closed;
-      });
-      if (!workdays.length) {
-        listEl.innerHTML = '<p class="workday-empty">เดือนนี้ไม่มีวันทำการ</p>';
+      if (!data.days.length) {
+        listEl.innerHTML = '<p class="workday-empty">ไม่มีข้อมูลของเดือนนี้</p>';
         return;
       }
-      listEl.innerHTML = workdays.map(function(d){
+
+      var _todayD = new Date();
+      var todayStr = _todayD.getFullYear() + '-' + String(_todayD.getMonth() + 1).padStart(2, '0') + '-' + String(_todayD.getDate()).padStart(2, '0');
+
+      // หา offset ของวันแรกของเดือน (0=อา...6=ส) แบบใช้เวลาท้องถิ่น กันปัญหา timezone
+      var firstParts = data.days[0].date.split('-').map(Number);
+      var firstDow = new Date(firstParts[0], firstParts[1] - 1, firstParts[2]).getDay();
+
+      var cellsHtml = '';
+      for (var b = 0; b < firstDow; b++) {
+        cellsHtml += '<div class="workday-cell is-blank"></div>';
+      }
+
+      data.days.forEach(function(d){
         var parts = d.date.split('-');
-        var day = parts[2];
-        var mon = thMonths[parseInt(parts[1], 10) - 1].substring(0, 3);
-        var free = d.totalFree || 0;
-        var isFull = free <= 0;
-        var queueText = isFull ? 'คิวเต็ม' : ('เหลือ <strong>' + free + '</strong> คิว');
-        return '<div class="workday-chip' + (isFull ? ' is-full' : '') + '"><div class="wc-date">' + day + '<small>' + mon + '</small></div>' +
-               '<div class="wc-queue">' + queueText + '</div></div>';
-      }).join('');
+        var dayNum = parseInt(parts[2], 10);
+        var isToday = d.date === todayStr;
+        var cellClass = 'workday-cell';
+        var statusText;
+
+        var titleAttr = '';
+        if (d.closed) {
+          cellClass += ' is-closed';
+          statusText = 'หยุด';
+          if (d.reason && d.reason !== 'วันหยุดสัปดาห์') titleAttr = ' title="' + d.reason.replace(/"/g, '&quot;') + '"';
+        } else {
+          var free = d.totalFree || 0;
+          var isFull = free <= 0;
+          cellClass += ' is-open' + (isFull ? ' is-full' : '');
+          statusText = isFull ? 'เต็ม' : ('ว่าง ' + free);
+        }
+        if (isToday) cellClass += ' is-today';
+
+        cellsHtml += '<div class="' + cellClass + '"' + titleAttr + '><div class="wc-num">' + dayNum + '</div>' +
+                     '<div class="wc-status">' + statusText + '</div></div>';
+      });
+
+      listEl.innerHTML = cellsHtml;
     }, function(){
       listEl.innerHTML = '<p class="workday-empty">ไม่สามารถโหลดข้อมูลวันทำการได้ในขณะนี้ กรุณาลองใหม่ภายหลัง</p>';
     });
