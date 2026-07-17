@@ -93,19 +93,23 @@
     .service-card-photo{ opacity:1; transform:none; transition:none; }
   }
 
-  /* --- holidays widget --- */
-  .holiday-list{display:flex;flex-wrap:wrap;gap:12px;}
-  .holiday-chip{
+  /* --- workdays / queue availability widget --- */
+  .workday-list{display:flex;flex-wrap:wrap;gap:12px;}
+  .workday-chip{
     display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);
     border-radius:12px;padding:12px 16px;box-shadow:var(--shadow);min-width:180px;
   }
-  .holiday-chip .hc-date{
+  .workday-chip .wc-date{
     display:flex;flex-direction:column;align-items:center;justify-content:center;
-    background:#fef2f2;color:#dc2626;border-radius:10px;padding:6px 10px;min-width:48px;font-weight:700;
+    background:#ecfdf5;color:#059669;border-radius:10px;padding:6px 10px;min-width:48px;font-weight:700;
   }
-  .holiday-chip .hc-date small{font-weight:500;font-size:.68rem;color:#b91c1c;}
-  .holiday-chip .hc-reason{font-size:.85rem;color:var(--text-soft);}
-  .holiday-empty{color:var(--text-soft);font-size:.9rem;}
+  .workday-chip .wc-date small{font-weight:500;font-size:.68rem;color:#047857;}
+  .workday-chip .wc-queue{font-size:.85rem;color:var(--text-soft);}
+  .workday-chip .wc-queue strong{color:#059669;font-weight:700;}
+  .workday-chip.is-full .wc-date{background:#fef2f2;color:#dc2626;}
+  .workday-chip.is-full .wc-date small{color:#b91c1c;}
+  .workday-chip.is-full .wc-queue strong{color:#dc2626;}
+  .workday-empty{color:var(--text-soft);font-size:.9rem;}
 
   /* --- portfolio auto-slide carousel --- */
   .portfolio-viewport{
@@ -365,7 +369,7 @@
       <a href="#process">วิธีจองคิว</a>
       <a href="#portfolio">ผลงานของเรา</a>
       <a href="#map">แผนที่</a>
-      <a href="#holidays">วันหยุด</a>
+      <a href="#workdays">วันทำการ</a>
       <a href="#contact">ติดต่อ</a>
     </nav>
     <div class="topbar-cta">
@@ -403,7 +407,7 @@
         </div>
         <div class="feature-item">
           <div class="feature-dot"><span class="material-icons-outlined">payments</span></div>
-          <div><h3>ไม่มีค่าใช้จ่ายแอบแฝง</h3><p>บริการฟรีตามสิทธิการรักษา ไม่มีค่าใช้จ่ายซ่อนเร้นสำหรับผู้มีสิทธิบัตรทอง</p></div>
+          <div><h3>รักษาตามมาตรฐานวิชาชีพ</h3><p>ทุกขั้นตอนการรักษาดำเนินการโดยนักกายภาพบำบัดตามมาตรฐานวิชาชีพกายภาพบำบัดอย่างเคร่งครัด</p></div>
         </div>
       </div>
     </div>
@@ -580,16 +584,16 @@
   </div>
 </section>
 
-<!-- ===== HOLIDAYS (จากตารางปฏิทินรายเดือน) ===== -->
-<section id="holidays">
+<!-- ===== WORKDAYS & คิวว่าง (จากตารางปฏิทินรายเดือน) ===== -->
+<section id="workdays">
   <div class="wrap">
     <div class="section-head">
-      <div class="eyebrow"><span class="material-icons-outlined">event_busy</span>วันหยุดประจำเดือน</div>
-      <h2 id="holidayMonthTitle">วันหยุดเดือนนี้</h2>
-      <p>วันหยุดพิเศษ/นักขัตฤกษ์ที่หน่วยงานปิดทำการ (นอกเหนือจากวันเสาร์–อาทิตย์ตามปกติ) ดึงข้อมูลจากปฏิทินของหน่วยงานโดยตรง</p>
+      <div class="eyebrow"><span class="material-icons-outlined">event_available</span>คิวว่างประจำเดือน</div>
+      <h2 id="workdayMonthTitle">วันทำการเดือนนี้</h2>
+      <p>วันทำการที่เปิดให้บริการในเดือนนี้ พร้อมจำนวนคิวที่ยังสามารถจองได้ในแต่ละวัน (ไม่รวมวันหยุดเสาร์–อาทิตย์และวันหยุดนักขัตฤกษ์) ดึงข้อมูลจากปฏิทินของหน่วยงานโดยตรง</p>
     </div>
-    <div class="holiday-list" id="holidayList">
-      <p class="holiday-empty">กำลังโหลดข้อมูลวันหยุด...</p>
+    <div class="workday-list" id="workdayList">
+      <p class="workday-empty">กำลังโหลดข้อมูลวันทำการ...</p>
     </div>
   </div>
 </section>
@@ -704,7 +708,7 @@
           var el = document.getElementById(id);
           if (el) el.setAttribute('href', res.url);
         });
-        loadHolidays(); // มี token แล้ว ค่อยโหลดวันหยุด
+        loadWorkdays(); // มี token แล้ว ค่อยโหลดวันทำการ/คิวว่าง
       }
     }, function(){
       // เงียบไว้ — ปุ่มจะยังคงใช้ href เดิม (#enter หรือ #) ผู้ใช้ยังกดสำรวจหน้าเว็บได้ตามปกติ
@@ -743,47 +747,50 @@
     cards.forEach(function(c){ io.observe(c); });
   })();
 
-  // ✅ ดึงวันหยุดของเดือนนี้จากตารางปฏิทิน ผ่าน JSONP (เรียกได้ทั้งตอนอยู่บน GAS และ GitHub Pages)
-  function loadHolidays(){
-    var listEl = document.getElementById('holidayList');
-    var titleEl = document.getElementById('holidayMonthTitle');
+  // ✅ ดึงวันทำการของเดือนนี้ พร้อมจำนวนคิวว่างที่ยังจองได้ จากตารางปฏิทิน ผ่าน JSONP (เรียกได้ทั้งตอนอยู่บน GAS และ GitHub Pages)
+  function loadWorkdays(){
+    var listEl = document.getElementById('workdayList');
+    var titleEl = document.getElementById('workdayMonthTitle');
     if (!listEl) return;
 
     var token;
     try { token = new URL(CONFIG.PUBLIC_URL).searchParams.get('token'); } catch(e) { token = ''; }
     if (!token) {
-      listEl.innerHTML = '<p class="holiday-empty">ไม่พบโทเค็นสำหรับตรวจสอบวันหยุด</p>';
+      listEl.innerHTML = '<p class="workday-empty">ไม่พบโทเค็นสำหรับตรวจสอบคิวว่าง</p>';
       return;
     }
 
     var now = new Date();
     var ym  = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
     var thMonths = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
-    if (titleEl) titleEl.textContent = 'วันหยุดเดือน ' + thMonths[now.getMonth()] + ' ' + (now.getFullYear() + 543);
+    if (titleEl) titleEl.textContent = 'วันทำการเดือน ' + thMonths[now.getMonth()] + ' ' + (now.getFullYear() + 543);
 
     var url = CONFIG.APP_URL + '?action=getAvailability&token=' + encodeURIComponent(token) + '&ym=' + encodeURIComponent(ym);
     jsonp(url, function(data){
       if (!data || !data.success || !Array.isArray(data.days)) {
-        listEl.innerHTML = '<p class="holiday-empty">ไม่สามารถโหลดข้อมูลวันหยุดได้ในขณะนี้ กรุณาลองใหม่ภายหลัง</p>';
+        listEl.innerHTML = '<p class="workday-empty">ไม่สามารถโหลดข้อมูลวันทำการได้ในขณะนี้ กรุณาลองใหม่ภายหลัง</p>';
         return;
       }
-      // เฉพาะวันหยุดพิเศษ/นักขัตฤกษ์ — ไม่รวมวันเสาร์–อาทิตย์ปกติ
-      var holidays = data.days.filter(function(d){
-        return d.closed && d.reason && d.reason !== 'วันหยุดสัปดาห์';
+      // เฉพาะวันทำการ — ไม่รวมวันเสาร์–อาทิตย์และวันหยุดนักขัตฤกษ์ (d.closed === true)
+      var workdays = data.days.filter(function(d){
+        return !d.closed;
       });
-      if (!holidays.length) {
-        listEl.innerHTML = '<p class="holiday-empty">เดือนนี้ไม่มีวันหยุดพิเศษนอกเหนือจากวันเสาร์–อาทิตย์</p>';
+      if (!workdays.length) {
+        listEl.innerHTML = '<p class="workday-empty">เดือนนี้ไม่มีวันทำการ</p>';
         return;
       }
-      listEl.innerHTML = holidays.map(function(h){
-        var parts = h.date.split('-');
+      listEl.innerHTML = workdays.map(function(d){
+        var parts = d.date.split('-');
         var day = parts[2];
         var mon = thMonths[parseInt(parts[1], 10) - 1].substring(0, 3);
-        return '<div class="holiday-chip"><div class="hc-date">' + day + '<small>' + mon + '</small></div>' +
-               '<div class="hc-reason">' + h.reason + '</div></div>';
+        var free = d.totalFree || 0;
+        var isFull = free <= 0;
+        var queueText = isFull ? 'คิวเต็ม' : ('เหลือ <strong>' + free + '</strong> คิว');
+        return '<div class="workday-chip' + (isFull ? ' is-full' : '') + '"><div class="wc-date">' + day + '<small>' + mon + '</small></div>' +
+               '<div class="wc-queue">' + queueText + '</div></div>';
       }).join('');
     }, function(){
-      listEl.innerHTML = '<p class="holiday-empty">ไม่สามารถโหลดข้อมูลวันหยุดได้ในขณะนี้ กรุณาลองใหม่ภายหลัง</p>';
+      listEl.innerHTML = '<p class="workday-empty">ไม่สามารถโหลดข้อมูลวันทำการได้ในขณะนี้ กรุณาลองใหม่ภายหลัง</p>';
     });
   }
 
