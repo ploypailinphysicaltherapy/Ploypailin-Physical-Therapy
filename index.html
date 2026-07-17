@@ -179,22 +179,22 @@
 
   /* --- left: doctor card + headline + bullets --- */
   .doc-card{
-    display:flex;align-items:center;gap:16px;background:var(--card);
-    border:1px solid var(--line);border-radius:999px;padding:10px 22px 10px 10px;
+    display:flex;align-items:center;gap:20px;background:var(--card);
+    border:1px solid var(--line);border-radius:999px;padding:14px 30px 14px 14px;
     box-shadow:var(--shadow);margin-bottom:30px;
   }
   .doc-photo{
-    width:64px;height:64px;border-radius:50%;flex-shrink:0;
+    width:92px;height:92px;border-radius:50%;flex-shrink:0;
     background:var(--sage-light);color:var(--sage-dark);
     display:flex;align-items:center;justify-content:center;
-    border:2px solid #fff;box-shadow:0 0 0 1px var(--line);
+    border:3px solid #fff;box-shadow:0 0 0 1px var(--line);
     overflow:hidden;
   }
   .doc-photo img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
-  .doc-photo .material-icons-outlined{font-size:30px;}
-  .doc-role{font-size:0.8rem;color:var(--text-soft);}
-  .doc-name{font-family:var(--font-display);font-weight:700;font-size:1.06rem;color:var(--ink);margin:1px 0;}
-  .doc-license{font-size:0.76rem;color:var(--text-soft);}
+  .doc-photo .material-icons-outlined{font-size:42px;}
+  .doc-role{font-size:1rem;color:var(--text-soft);}
+  .doc-name{font-family:var(--font-display);font-weight:700;font-size:1.5rem;color:var(--ink);margin:3px 0;}
+  .doc-license{font-size:0.95rem;color:var(--text-soft);}
 
   .hero h1{font-size:2.15rem;font-weight:700;margin-bottom:26px;letter-spacing:-0.01em;}
   .hero h1 em{font-style:normal;color:var(--sage-dark);}
@@ -645,7 +645,7 @@
     APP_URL: 'https://script.google.com/macros/s/AKfycbxIjg56IIke6-JY_Fa8z5kNt2_V3lmpihZmL-Hw553bye_9uImU4iQR1F4EkSF5_v8/exec',
     // ลิงก์คิวว่างสำหรับผู้รับบริการ — ไม่ hardcode เพราะมี token ที่เปลี่ยนได้เวลาแอดมินกด "สร้างลิงก์ใหม่"
     // จะถูกดึงมาสด ๆ ทุกครั้งที่โหลดหน้าผ่าน JSONP (ข้ามโดเมนได้ ไม่ติด CORS) ดูฟังก์ชัน loadPublicLink() ด้านล่าง
-    PUBLIC_URL: 'https://script.google.com/macros/s/AKfycbxIjg56IIke6-JY_Fa8z5kNt2_V3lmpihZmL-Hw553bye_9uImU4iQR1F4EkSF5_v8/exec?view=public&token=9e0e109f99224b62aae665b2f57ec90d',
+    PUBLIC_URL: '',
     PHONE_DISPLAY: '02-598-2723',
     PHONE_TEL: '0025982723',
     ADDRESS: 'ตำบลบางขะแยง อำเภอเมืองปทุมธานี จังหวัดปทุมธานี 12000',
