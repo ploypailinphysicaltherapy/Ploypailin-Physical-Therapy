@@ -96,40 +96,63 @@
   /* --- workdays / queue availability widget: calendar layout --- */
   .workday-calendar{width:100%;}
   .workday-weekdays{
-    display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:8px;
+    display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:10px;
   }
   .workday-weekdays span{
-    text-align:center;font-size:.78rem;font-weight:700;color:var(--text-soft);padding:4px 0;
+    text-align:center;font-family:var(--font-display);font-weight:600;font-size:.78rem;
+    color:var(--sage-dark);background:var(--sage-light);border-radius:8px;padding:7px 0;
   }
   .workday-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;}
   .workday-cell{
-    min-height:78px;border-radius:12px;border:1px solid var(--line);background:var(--card);
+    position:relative;min-height:86px;border-radius:14px;border:1px solid var(--line);background:var(--card);
     box-shadow:var(--shadow);display:flex;flex-direction:column;align-items:center;justify-content:center;
-    gap:4px;padding:8px 4px;text-align:center;
+    gap:6px;padding:14px 6px 10px;text-align:center;
+    transition:transform .18s ease, box-shadow .18s ease;
   }
+  .workday-cell::before{
+    content:'';position:absolute;top:0;left:0;right:0;height:4px;border-radius:14px 14px 0 0;background:var(--line);
+  }
+  .workday-cell:not(.is-blank):hover{transform:translateY(-3px);box-shadow:0 16px 32px rgba(23,34,44,.13);}
   .workday-cell.is-blank{background:transparent;border-color:transparent;box-shadow:none;}
-  .workday-cell .wc-num{font-size:1.05rem;font-weight:800;color:var(--text);}
-  .workday-cell .wc-status{font-size:.72rem;font-weight:600;line-height:1.2;}
-  .workday-cell.is-open .wc-num{color:#059669;}
-  .workday-cell.is-open .wc-status{color:#059669;}
-  .workday-cell.is-open.is-full .wc-num{color:#dc2626;}
-  .workday-cell.is-open.is-full .wc-status{color:#dc2626;}
-  .workday-cell.is-closed{background:#f9fafb;}
-  .workday-cell.is-closed .wc-num{color:#9ca3af;}
-  .workday-cell.is-closed .wc-status{color:#9ca3af;}
-  .workday-cell.is-today{border:2px solid #059669;}
-  .workday-legend{display:flex;flex-wrap:wrap;gap:16px;margin-top:16px;font-size:.82rem;color:var(--text-soft);}
-  .workday-legend span{display:inline-flex;align-items:center;gap:6px;}
-  .workday-legend i{width:12px;height:12px;border-radius:4px;display:inline-block;}
-  .workday-legend .lg-open{background:#ecfdf5;border:1px solid #059669;}
-  .workday-legend .lg-full{background:#fef2f2;border:1px solid #dc2626;}
-  .workday-legend .lg-closed{background:#f9fafb;border:1px solid var(--line);}
+  .workday-cell.is-blank::before{display:none;}
+
+  .wc-num{font-family:var(--font-display);font-weight:700;font-size:1.12rem;color:var(--ink);}
+  .wc-pill{
+    display:inline-flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:600;
+    padding:2px 10px;border-radius:999px;max-width:100%;
+  }
+
+  .workday-cell.is-open::before{background:var(--sage);}
+  .workday-cell.is-open .wc-pill{background:var(--sage-light);color:var(--sage-dark);}
+
+  .workday-cell.is-open.is-full::before{background:var(--green-cta);}
+  .workday-cell.is-open.is-full .wc-pill{background:#fbe9e0;color:var(--green-cta-dark);}
+
+  .workday-cell.is-closed .wc-num{color:#b6ae9c;}
+  .workday-cell.is-closed .wc-pill{background:transparent;color:#a39c8c;font-weight:500;white-space:normal;line-height:1.2;padding:0 2px;}
+
+  .workday-cell.is-today{border-color:var(--sage-dark);box-shadow:0 0 0 3px var(--sage-light),var(--shadow);}
+  .workday-cell.is-today .wc-num{color:var(--sage-dark);}
+  .today-ping{position:absolute;top:8px;right:8px;width:7px;height:7px;border-radius:50%;background:var(--sage-dark);}
+  .today-ping::after{
+    content:'';position:absolute;inset:0;border-radius:50%;background:var(--sage-dark);
+    animation:pingPulse 1.7s cubic-bezier(0,0,.2,1) infinite;
+  }
+  @keyframes pingPulse{0%{transform:scale(1);opacity:.65;}75%,100%{transform:scale(2.6);opacity:0;}}
+  @media (prefers-reduced-motion:reduce){ .today-ping::after{animation:none;} }
+
+  .workday-legend{display:flex;flex-wrap:wrap;gap:20px;margin-top:22px;font-size:.82rem;color:var(--text-soft);}
+  .workday-legend span{display:inline-flex;align-items:center;gap:8px;}
+  .workday-legend i{width:10px;height:10px;border-radius:50%;display:inline-block;}
+  .workday-legend .lg-open{background:var(--sage);}
+  .workday-legend .lg-full{background:var(--green-cta);}
+  .workday-legend .lg-closed{background:#d8d2c2;}
   .workday-empty{color:var(--text-soft);font-size:.9rem;grid-column:1/-1;}
   @media (max-width:640px){
-    .workday-cell{min-height:58px;padding:6px 2px;}
-    .workday-cell .wc-num{font-size:.88rem;}
-    .workday-cell .wc-status{font-size:.6rem;}
-    .workday-weekdays span{font-size:.68rem;}
+    .workday-cell{min-height:64px;padding:10px 3px 8px;gap:4px;}
+    .wc-num{font-size:.92rem;}
+    .wc-pill{font-size:.58rem;padding:1px 6px;}
+    .workday-weekdays span{font-size:.66rem;padding:5px 0;}
   }
 
   /* --- portfolio auto-slide carousel --- */
@@ -611,7 +634,7 @@
     <div class="section-head">
       <div class="eyebrow"><span class="material-icons-outlined">event_available</span>คิวว่างประจำเดือน</div>
       <h2 id="workdayMonthTitle">วันทำการเดือนนี้</h2>
-      <p>ปฏิทินวันทำการในเดือนนี้ พร้อมจำนวนคิวที่ยังสามารถจองได้ในแต่ละวัน (วันที่แรเงาคือวันหยุดเสาร์–อาทิตย์และวันหยุดนักขัตฤกษ์) ดึงข้อมูลจากปฏิทินของหน่วยงานโดยตรง</p>
+      <p>ปฏิทินวันทำการในเดือนนี้ พร้อมจำนวนคิวที่ยังสามารถจองได้ในแต่ละวัน (วันที่แรเงาคือวันที่ไม่เปิดทำการ) ดึงข้อมูลจากปฏิทินของหน่วยงานโดยตรง</p>
     </div>
     <div class="workday-calendar" id="workdayCalendar">
       <div class="workday-weekdays">
@@ -623,7 +646,7 @@
       <div class="workday-legend">
         <span><i class="lg-open"></i>มีคิวว่าง</span>
         <span><i class="lg-full"></i>คิวเต็ม</span>
-        <span><i class="lg-closed"></i>วันหยุด</span>
+        <span><i class="lg-closed"></i>ไม่เปิดทำการ</span>
       </div>
     </div>
   </div>
@@ -826,11 +849,9 @@
         var cellClass = 'workday-cell';
         var statusText;
 
-        var titleAttr = '';
         if (d.closed) {
           cellClass += ' is-closed';
-          statusText = 'หยุด';
-          if (d.reason && d.reason !== 'วันหยุดสัปดาห์') titleAttr = ' title="' + d.reason.replace(/"/g, '&quot;') + '"';
+          statusText = 'ไม่เปิดทำการ';
         } else {
           var free = d.totalFree || 0;
           var isFull = free <= 0;
@@ -839,8 +860,9 @@
         }
         if (isToday) cellClass += ' is-today';
 
-        cellsHtml += '<div class="' + cellClass + '"' + titleAttr + '><div class="wc-num">' + dayNum + '</div>' +
-                     '<div class="wc-status">' + statusText + '</div></div>';
+        cellsHtml += '<div class="' + cellClass + '">' + (isToday ? '<span class="today-ping"></span>' : '') +
+                     '<div class="wc-num">' + dayNum + '</div>' +
+                     '<div class="wc-pill">' + statusText + '</div></div>';
       });
 
       listEl.innerHTML = cellsHtml;
