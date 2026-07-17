@@ -106,6 +106,31 @@
   .holiday-chip .hc-date small{font-weight:500;font-size:.68rem;color:#b91c1c;}
   .holiday-chip .hc-reason{font-size:.85rem;color:var(--text-soft);}
   .holiday-empty{color:var(--text-soft);font-size:.9rem;}
+
+  /* --- portfolio auto-slide carousel --- */
+  .portfolio-viewport{
+    overflow:hidden;position:relative;width:100%;
+    -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 5%,#000 95%,transparent 100%);
+    mask-image:linear-gradient(90deg,transparent 0,#000 5%,#000 95%,transparent 100%);
+  }
+  .portfolio-track{
+    display:flex;gap:20px;width:max-content;
+    animation:portfolio-scroll 32s linear infinite;
+  }
+  .portfolio-track:hover{animation-play-state:paused;}
+  .portfolio-item{
+    flex:0 0 auto;width:300px;height:210px;border-radius:var(--r-lg,16px);
+    overflow:hidden;box-shadow:var(--shadow);border:1px solid var(--line);
+  }
+  .portfolio-item img{width:100%;height:100%;object-fit:cover;display:block;}
+  @keyframes portfolio-scroll{
+    from{ transform:translateX(0); }
+    to{ transform:translateX(-50%); }
+  }
+  @media (max-width:640px){ .portfolio-item{width:220px;height:160px;} }
+  @media (prefers-reduced-motion:reduce){
+    .portfolio-track{ animation:none; }
+  }
   body{
     font-family:var(--font-body);
     color:var(--text);
@@ -338,7 +363,7 @@
       <a href="#home">หน้าแรก</a>
       <a href="#services">บริการ</a>
       <a href="#process">วิธีจองคิว</a>
-      <a href="#rights">สิทธิการรักษา</a>
+      <a href="#portfolio">ผลงานของเรา</a>
       <a href="#map">แผนที่</a>
       <a href="#holidays">วันหยุด</a>
       <a href="#contact">ติดต่อ</a>
@@ -509,19 +534,17 @@
   </section>
 </div>
 
-<!-- ===== RIGHTS ===== -->
-<section id="rights">
+<!-- ===== PORTFOLIO (ผลงานของเรา) ===== -->
+<section id="portfolio">
   <div class="wrap">
     <div class="section-head">
-      <div class="eyebrow"><span class="material-icons-outlined">verified_user</span>สิทธิการรักษา</div>
-      <h2>รองรับสิทธิการรักษาหลากหลาย</h2>
-      <p>โปรดเตรียมบัตรประชาชนหรือเอกสารสิทธิมาด้วยทุกครั้งที่มารับบริการ</p>
+      <div class="eyebrow"><span class="material-icons-outlined">photo_library</span>ผลงานของเรา</div>
+      <h2>ภาพบรรยากาศการให้บริการจริง</h2>
+      <p>ตัวอย่างการดูแลผู้ป่วยของทีมกายภาพบำบัด รพ.สต.บางขะแยง (ภาพชุดนี้เป็นภาพตัวอย่างชั่วคราว รอภาพจริงจากหน่วยงาน)</p>
     </div>
-    <div class="rights-band">
-      <div class="right-chip"><span class="material-icons-outlined">badge</span>บัตรทอง (สปสช.)</div>
-      <div class="right-chip"><span class="material-icons-outlined">badge</span>ข้าราชการ / รัฐวิสาหกิจ</div>
-      <div class="right-chip"><span class="material-icons-outlined">badge</span>ชำระเงินเอง</div>
-    </div>
+  </div>
+  <div class="portfolio-viewport">
+    <div class="portfolio-track" id="portfolioTrack"></div>
   </div>
 </section>
 
@@ -617,35 +640,77 @@
 (function(){
   /* ========= CONFIG: แก้ค่าตรงนี้ให้ตรงกับหน่วยงานจริง ========= */
   var CONFIG = {
-    // ✅ ค่านี้จะถูกแทนที่อัตโนมัติด้วย URL จริงของ Web App โดย doGet() ใน Code.gs
-    // (ไม่ต้องแก้มือ ตราบใดที่เปิดหน้านี้ผ่าน <APP_URL>?view=landing)
-    APP_URL: '__APP_URL__',
-    // ✅ ลิงก์คิวว่างสำหรับผู้รับบริการ (ลิงก์เดียวกับที่ปุ่ม "ลิงก์คิวว่างสำหรับผู้รับบริการ" ใน index.html สร้างให้)
-    // ถูกแทนที่อัตโนมัติโดย doGet() เช่นกัน ไม่ต้องแก้มือ
-    PUBLIC_URL: '__PUBLIC_URL__',
+    // ✅ URL ของ Web App (Code.gs) ตัวจริง — hardcode ไว้เลย เพราะไฟล์นี้อาจถูกโฮสต์แยกโดเมน (เช่น GitHub Pages)
+    // ซึ่งไม่มี doGet() มาแทนที่ placeholder ให้อีกต่อไป ถ้า deploy ใหม่แล้วได้ URL อื่น ให้แก้ค่านี้
+    APP_URL: 'https://script.google.com/macros/s/AKfycbxIjg56IIke6-JY_Fa8z5kNt2_V3lmpihZmL-Hw553bye_9uImU4iQR1F4EkSF5_v8/exec',
+    // ลิงก์คิวว่างสำหรับผู้รับบริการ — ไม่ hardcode เพราะมี token ที่เปลี่ยนได้เวลาแอดมินกด "สร้างลิงก์ใหม่"
+    // จะถูกดึงมาสด ๆ ทุกครั้งที่โหลดหน้าผ่าน JSONP (ข้ามโดเมนได้ ไม่ติด CORS) ดูฟังก์ชัน loadPublicLink() ด้านล่าง
+    PUBLIC_URL: '',
     PHONE_DISPLAY: '02-598-2723',
     PHONE_TEL: '0025982723',
     ADDRESS: 'ตำบลบางขะแยง อำเภอเมืองปทุมธานี จังหวัดปทุมธานี 12000',
     // ⚠️ แก้เป็นลิงก์เพจ Facebook จริงของหน่วยงาน เช่น 'https://www.facebook.com/xxxxx'
-    FACEBOOK_URL: ''
+    FACEBOOK_URL: 'https://www.facebook.com/rong.phyabal.sng.serimsukh.phaph.tabl.ba.754116/'
   };
 
   document.getElementById('year').textContent = new Date().getFullYear() + 543; // พ.ศ.
 
-  // ถ้าเปิดไฟล์นี้ตรง ๆ (ไม่ผ่าน doGet) __APP_URL__ / __PUBLIC_URL__ จะไม่ถูกแทนที่ — กันไว้ไม่ให้ปุ่มพังลิงก์
-  var hasRealAppUrl    = !!CONFIG.APP_URL    && CONFIG.APP_URL.indexOf('__APP_URL__') === -1;
-  var hasRealPublicUrl = !!CONFIG.PUBLIC_URL && CONFIG.PUBLIC_URL.indexOf('__PUBLIC_URL__') === -1;
+  // ✅ JSONP helper — ใช้แทน fetch() สำหรับเรียก Code.gs ข้ามโดเมน (fetch ธรรมดาจะโดน CORS บล็อก
+  // เพราะ Apps Script ไม่ส่ง header Access-Control-Allow-Origin ให้ตอนเรียกจากโดเมนอื่น เช่น GitHub Pages)
+  function jsonp(url, onSuccess, onError) {
+    var cbName = 'jsonp_cb_' + Math.random().toString(36).slice(2);
+    var script = document.createElement('script');
+    var done = false;
+    var timer = setTimeout(function(){
+      if (done) return;
+      done = true;
+      cleanup();
+      onError && onError(new Error('timeout'));
+    }, 10000);
+    function cleanup(){
+      clearTimeout(timer);
+      delete window[cbName];
+      if (script.parentNode) script.parentNode.removeChild(script);
+    }
+    window[cbName] = function(data){
+      if (done) return;
+      done = true;
+      cleanup();
+      onSuccess(data);
+    };
+    script.onerror = function(){
+      if (done) return;
+      done = true;
+      cleanup();
+      onError && onError(new Error('script load failed'));
+    };
+    script.src = url + (url.indexOf('?') === -1 ? '?' : '&') + 'callback=' + cbName;
+    document.body.appendChild(script);
+  }
 
-  // ปุ่ม "เข้าสู่ระบบจองคิว" ทุกจุด (บนสุด / ฮีโร่ / CTA กลางหน้า / footer)
-  // ต้องพาผู้รับบริการไปที่ลิงก์คิวว่างสำหรับผู้รับบริการโดยตรง — ไม่ใช่หน้าแอปเจ้าหน้าที่
-  ['enterBtnTop','enterBtnHero','enterBtnMain','footEnterLink'].forEach(function(id){
-    var el = document.getElementById(id);
-    if (hasRealPublicUrl && el) el.setAttribute('href', CONFIG.PUBLIC_URL);
-  });
-
-  // ลิงก์ "สำหรับเจ้าหน้าที่" ยังคงพาไปหน้าแอประบบหลัก (index.html) ตามเดิม
   var staffLink = document.getElementById('staffLink');
-  if (hasRealAppUrl && staffLink) staffLink.setAttribute('href', CONFIG.APP_URL);
+  var bookingBtnIds = ['enterBtnTop','enterBtnHero','enterBtnMain','footEnterLink'];
+
+  // ลิงก์ "สำหรับเจ้าหน้าที่" พาไปหน้าแอประบบหลัก (index.html) — ใช้ APP_URL ตรง ๆ ได้เลย ไม่ต้องรอ JSONP
+  if (staffLink) staffLink.setAttribute('href', CONFIG.APP_URL);
+
+  // ✅ ดึงลิงก์คิวว่างล่าสุดแบบสด ๆ ทุกครั้งที่เปิดหน้า — sync กับปุ่ม "สร้างลิงก์ใหม่" ใน index.html เสมอ
+  // ไม่ว่า Web.html จะถูกโฮสต์อยู่ที่ไหน (GAS หรือ GitHub Pages) เพราะเรียกผ่าน JSONP ข้ามโดเมนได้
+  function loadPublicLink(){
+    jsonp(CONFIG.APP_URL + '?action=getPublicLink', function(res){
+      if (res && res.success && res.url) {
+        CONFIG.PUBLIC_URL = res.url;
+        bookingBtnIds.forEach(function(id){
+          var el = document.getElementById(id);
+          if (el) el.setAttribute('href', res.url);
+        });
+        loadHolidays(); // มี token แล้ว ค่อยโหลดวันหยุด
+      }
+    }, function(){
+      // เงียบไว้ — ปุ่มจะยังคงใช้ href เดิม (#enter หรือ #) ผู้ใช้ยังกดสำรวจหน้าเว็บได้ตามปกติ
+    });
+  }
+  loadPublicLink();
 
   // ปุ่มติดตาม Facebook
   var fbBtn = document.getElementById('fbLinkBtn');
@@ -678,16 +743,11 @@
     cards.forEach(function(c){ io.observe(c); });
   })();
 
-  // ✅ ดึงวันหยุดของเดือนนี้จากตารางปฏิทิน (ใช้ endpoint เดียวกับหน้าลิงก์คิวว่าง)
-  (function loadHolidays(){
+  // ✅ ดึงวันหยุดของเดือนนี้จากตารางปฏิทิน ผ่าน JSONP (เรียกได้ทั้งตอนอยู่บน GAS และ GitHub Pages)
+  function loadHolidays(){
     var listEl = document.getElementById('holidayList');
     var titleEl = document.getElementById('holidayMonthTitle');
     if (!listEl) return;
-
-    if (!hasRealAppUrl || !hasRealPublicUrl) {
-      listEl.innerHTML = '<p class="holiday-empty">ข้อมูลวันหยุดจะแสดงเมื่อเปิดหน้านี้ผ่านลิงก์เว็บที่ deploy แล้ว</p>';
-      return;
-    }
 
     var token;
     try { token = new URL(CONFIG.PUBLIC_URL).searchParams.get('token'); } catch(e) { token = ''; }
@@ -702,8 +762,11 @@
     if (titleEl) titleEl.textContent = 'วันหยุดเดือน ' + thMonths[now.getMonth()] + ' ' + (now.getFullYear() + 543);
 
     var url = CONFIG.APP_URL + '?action=getAvailability&token=' + encodeURIComponent(token) + '&ym=' + encodeURIComponent(ym);
-    fetch(url).then(function(r){ return r.json(); }).then(function(data){
-      if (!data || !data.success || !Array.isArray(data.days)) throw new Error('bad data');
+    jsonp(url, function(data){
+      if (!data || !data.success || !Array.isArray(data.days)) {
+        listEl.innerHTML = '<p class="holiday-empty">ไม่สามารถโหลดข้อมูลวันหยุดได้ในขณะนี้ กรุณาลองใหม่ภายหลัง</p>';
+        return;
+      }
       // เฉพาะวันหยุดพิเศษ/นักขัตฤกษ์ — ไม่รวมวันเสาร์–อาทิตย์ปกติ
       var holidays = data.days.filter(function(d){
         return d.closed && d.reason && d.reason !== 'วันหยุดสัปดาห์';
@@ -719,9 +782,31 @@
         return '<div class="holiday-chip"><div class="hc-date">' + day + '<small>' + mon + '</small></div>' +
                '<div class="hc-reason">' + h.reason + '</div></div>';
       }).join('');
-    }).catch(function(){
+    }, function(){
       listEl.innerHTML = '<p class="holiday-empty">ไม่สามารถโหลดข้อมูลวันหยุดได้ในขณะนี้ กรุณาลองใหม่ภายหลัง</p>';
     });
+  }
+
+  // ✅ สร้างสไลด์ "ผลงานของเรา" โดยดึงรูปจากการ์ดบริการที่มีอยู่แล้วมาทำซ้ำ (ไม่เพิ่มขนาดไฟล์)
+  (function buildPortfolioCarousel(){
+    var track = document.getElementById('portfolioTrack');
+    if (!track) return;
+    var sourceImgs = document.querySelectorAll('.service-card-photo img');
+    if (!sourceImgs.length) return;
+
+    function addSet(){
+      sourceImgs.forEach(function(img){
+        var item = document.createElement('div');
+        item.className = 'portfolio-item';
+        var clone = img.cloneNode(true);
+        clone.removeAttribute('loading');
+        item.appendChild(clone);
+        track.appendChild(item);
+      });
+    }
+    // เพิ่มรูปชุดเดียวกัน 2 รอบ เพื่อให้ลูปแบบไร้รอยต่อ (คู่กับ @keyframes translateX(-50%))
+    addSet();
+    addSet();
   })();
 })();
 </script>
