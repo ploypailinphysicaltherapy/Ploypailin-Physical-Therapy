@@ -800,7 +800,6 @@
     </div>
     <div class="footer-bottom">
       <span>© <span id="year"></span> PT Station — กายภาพบำบัด รพ.สต.บางขะแยง</span>
-      <a class="staff-link" href="#" id="staffLink">สำหรับเจ้าหน้าที่</a>
     </div>
   </div>
 </footer>
@@ -857,11 +856,7 @@
     document.body.appendChild(script);
   }
 
-  var staffLink = document.getElementById('staffLink');
   var bookingBtnIds = ['enterBtnTop','enterBtnHero','enterBtnMain','footEnterLink'];
-
-  // ลิงก์ "สำหรับเจ้าหน้าที่" พาไปหน้าแอประบบหลัก (index.html) — ใช้ APP_URL ตรง ๆ ได้เลย ไม่ต้องรอ JSONP
-  if (staffLink) staffLink.setAttribute('href', CONFIG.APP_URL);
 
   // ✅ ดึงลิงก์คิวว่างล่าสุดแบบสด ๆ ทุกครั้งที่เปิดหน้า — sync กับปุ่ม "สร้างลิงก์ใหม่" ใน index.html เสมอ
   // ไม่ว่า Web.html จะถูกโฮสต์อยู่ที่ไหน (GAS หรือ GitHub Pages) เพราะเรียกผ่าน JSONP ข้ามโดเมนได้
