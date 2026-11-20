@@ -23,7 +23,7 @@ const big=blocks.reduce((a,b)=>a.length>b.length?a:b);
  w.__t.eqcInit();
  setTimeout(()=>{
   const d=w.document;
-  T('assetList + lcAdminOverview both called',calls.join()==='assetList,lcAdminOverview,lcReqList',calls.join());
+  T('assetList + lcAdminOverview both called',calls.join()==='assetList,lcAdminOverview,lcReqList,lcDemoStatus',calls.join());
   T('registry shows loan badge overdue',/เกินกำหนดคืน 3 วัน/.test(d.getElementById('eqc-list').innerHTML));
   T('no add/QR buttons in header',!/eqcForm\(\)|eqcQrDialog\(\)/.test(view.replace(/eqcForm\(\)\s*\{/,'')) );
   T('open loan center link set',d.getElementById('eqc-open-lc').href==='https://x.github.io/p/loan/staff.html');

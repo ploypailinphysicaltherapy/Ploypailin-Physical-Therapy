@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0E6577">
+<meta name="theme-color" content="#B23A63">
 <meta name="robots" content="noindex">
 <title>ข้อมูลครุภัณฑ์</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -26,10 +26,12 @@
 </head>
 <body>
 <div class="roofline" aria-hidden="true" style="margin:-16px -16px 16px"></div>
-<main id="m" aria-live="polite"><p class="loading">กำลังโหลดข้อมูล…</p></main>
+<main id="m" aria-live="polite"><div class="sk-wrap" role="status" aria-busy="true" aria-label="กำลังโหลดข้อมูล"><i class="sk t w30"></i><i class="sk h" style="width:80%"></i><i class="sk btn-s" style="width:150px;height:30px"></i><i class="sk" style="height:52px;border-radius:12px"></i><i class="sk t"></i><i class="sk t w80"></i><i class="sk t w60"></i></div></main>
 <p class="foot" id="f"></p>
 <script src="config.js"></script>
+<script src="demo.js"></script>
 <script src="api.js"></script>
+<script src="ux.js"></script>
 <script>
 (function () {
   var C = window.ELC_CONFIG || {}, m = document.getElementById('m');
@@ -39,7 +41,7 @@
   function fd(iso) { var x = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(iso || '')); return x ? (+x[3]) + ' ' + MON[+x[2] - 1] + ' ' + (+x[1] + 543) : '-'; }
   var p = new URLSearchParams(location.search), id = p.get('id') || '', k = p.get('k') || '';
   function notFound(msg) { m.innerHTML = '<h1>ไม่พบข้อมูลครุภัณฑ์</h1><p class="hint" style="margin-top:8px">' + esc(msg || 'ป้าย QR นี้อาจถูกยกเลิกหรือถูกแทนที่ด้วยป้ายใหม่ กรุณาติดต่อเจ้าหน้าที่') + '</p>'; document.title = 'ไม่พบข้อมูล'; }
-  if (!/^A\d{3,}$/.test(id) || !/^[0-9a-f]{8}$/.test(k)) { notFound(); return; }
+  if (!/^(?:A|DEMO)\d{3,}$/.test(id) || !/^[0-9a-f]{8}$/.test(k)) { notFound(); return; }
   window.ELC_API.call('scan', { id: id, k: k }).then(function (a) {
     if (!a.valid) { notFound(); return; }
     var cls = a.status === 'ใช้งานได้' ? 'ok' : (a.status === 'จำหน่ายแล้ว' ? '' : (a.status === 'ชำรุด / รอซ่อม' ? 'bad' : 'warn'));

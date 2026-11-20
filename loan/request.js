@@ -103,7 +103,7 @@
   function checkStatus(id, ph) {
     var out = $('#stOut');
     if (!id || !ph) { out.innerHTML = '<p class="err" role="alert">กรุณากรอกเลขคำขอและเบอร์โทร</p>'; return; }
-    out.innerHTML = '<div class="card pad track"><p class="loading">กำลังตรวจสอบ…</p></div>';
+    out.innerHTML = window.ELC_UX ? window.ELC_UX.skel('track') : '<div class="card pad track"><p class="loading">กำลังตรวจสอบ…</p></div>';
     API.call('requestStatus', { reqId: id, phone: ph }).then(function (r) {
       var ok = r.status === 'อนุมัติแล้ว', no = r.status === 'ปฏิเสธ', c = ok ? 'ok' : no ? 'bad' : 'warn';
       out.innerHTML = '<div class="card pad track"><div class="track-h"><div><div class="id">' + esc(r.reqId) + '</div><p>' + esc(r.assetName) + '</p></div><span class="badge ' + c + '">' + esc(r.status) + '</span></div>' + pipe(r) +
@@ -118,7 +118,7 @@
     if (t.hasAttribute('data-close')) return closeDlg();
     if (t.hasAttribute('data-track')) { var f = $('#stForm'); f.elements.id.value = t.getAttribute('data-track'); f.elements.phone.value = t.getAttribute('data-phone') || ''; closeDlg(); tab('status', true); checkStatus(f.elements.id.value.trim(), f.elements.phone.value.trim()); return; }
     if (t.hasAttribute('data-tab')) { e.preventDefault(); return tab(t.dataset.tab, true); }
-    if (t.id === 'retry') { $('#list').innerHTML = '<div class="skel"><i></i><i></i><i></i></div>'; return load(); }
+    if (t.id === 'retry') { $('#list').innerHTML = window.ELC_UX ? window.ELC_UX.skel('cards') : '<div class="skel"><i></i><i></i><i></i></div>'; return load(); }
     if (t.hasAttribute('data-cat')) { S.cat = t.getAttribute('data-cat'); paintCats(); return paint(); }
     if (t.hasAttribute('data-id') && !t.disabled) openForm(t.getAttribute('data-id'));
   });
@@ -129,5 +129,13 @@
   // ทางเข้าผู้ดูแล (ซ่อนอยู่ใน "เจ้าหน้าที่" ท้ายหน้า)
   var adm = $('#adminApp'); if (adm) { if (C.ADMIN_URL) adm.href = C.ADMIN_URL; else adm.hidden = true; }
   var hm = $('#homeLink'); if (hm && C.HOME_URL) hm.href = C.HOME_URL;
+  // โหมดตัวอย่าง: ปุ่มเติมเลขคำขอ/เบอร์ตัวอย่างให้ลองหน้า "ติดตามคำขอ"
+  if (window.ELC_DEMO && window.ELC_DEMO.active()) {
+    var dl = $('#demoLink'); if (dl) dl.hidden = true;
+    var h = window.ELC_DEMO.hint, fb = document.createElement('div'); fb.className = 'demo-fill';
+    fb.innerHTML = 'ลองดูตัวอย่าง: <button class="btn sm" type="button" id="demoFill">ใช้เลขคำขอ ' + esc(h.reqId) + '</button>';
+    $('#stForm').parentNode.appendChild(fb);
+    $('#demoFill').addEventListener('click', function () { var f = $('#stForm'); f.elements.id.value = h.reqId; f.elements.phone.value = h.phone; checkStatus(h.reqId, h.phone); });
+  }
   tabFromHash(); load();
 })();

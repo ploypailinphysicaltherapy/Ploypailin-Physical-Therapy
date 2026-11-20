@@ -34,7 +34,7 @@ function dlg(html, onClose) {
   if (!d.open) d.showModal();
 }
 function setView(html, title) { $('#view').innerHTML = html; document.title = (title ? title + ' · ' : '') + C.ORG_NAME; window.scrollTo(0, 0); }
-function loading() { $('#view').innerHTML = '<p class="loading">กำลังโหลด…</p>'; }
+function loading(kind) { $('#view').innerHTML = window.ELC_UX ? window.ELC_UX.skel(kind || 'list') : '<p class="loading">กำลังโหลด…</p>'; }
 function fail(e, id) { if (id != null && id !== navId) return; if (e && (e.code === 'AUTH_REQUIRED')) return; $('#view').innerHTML = '<div class="empty"><p>' + esc(e.message || 'เกิดข้อผิดพลาด') + '</p><p style="margin-top:12px"><button class="btn" data-do="reload">ลองใหม่</button></p></div>'; }
 
 // ---------- ข้อมูล ----------
@@ -79,7 +79,7 @@ function assetRow(a) {
   return '<a class="li" href="#/asset/' + esc(a.assetId) + '"><span class="th">' + th + '</span><span class="mn"><span class="no">' + esc(a.assetNo || a.assetId) + '</span><div class="t">' + esc(a.name) + '</div><div class="s">' + esc([a.category, a.location].filter(Boolean).join(' · ') || '-') + '</div></span><span class="end">' + badges(a) + '</span></a>';
 }
 function loanRow(l) {
-  var late = l.overdue ? '<span class="badge bad">เกินกำหนด ' + l.daysLate + ' วัน</span>' : (l.daysLeft != null && l.daysLeft <= 2 ? '<span class="badge warn">ครบกำหนด' + (l.daysLeft === 0 ? 'วันนี้' : 'ใน ' + l.daysLeft + ' วัน') + '</span>' : '');
+  var late = (l.overdue || l.daysLate > 0) ? '<span class="badge bad">เกินกำหนด ' + l.daysLate + ' วัน</span>' : (l.daysLeft != null && l.daysLeft <= 2 ? '<span class="badge warn">ครบกำหนด' + (l.daysLeft === 0 ? 'วันนี้' : 'ใน ' + l.daysLeft + ' วัน') + '</span>' : '');
   var tel = l.phone ? ' · <a href="tel:' + esc(String(l.phone).replace(/[^0-9+]/g, '')) + '">' + esc(l.phone) + '</a>' : '';
   return '<div class="li noth"><div class="mn"><div class="t">' + esc((l.assetNo ? l.assetNo + ' · ' : '') + (l.assetName || '')) + '</div><div class="s">' + esc(l.borrowerName) + (l.borrowerType ? ' (' + esc(l.borrowerType) + ')' : '') + tel + ' · คืนภายใน ' + esc(fmtDate(l.dueDate)) + '</div></div><div class="end">' + late +
     '<a class="btn sm pri" href="#/asset/' + esc(l.assetId) + '/return">รับคืน</a><a class="btn sm" href="#/asset/' + esc(l.assetId) + '/extend">ต่อกำหนด</a></div></div>';
@@ -93,7 +93,9 @@ function renderLogin(msg) {
     '<div class="login-form"><form id="loginForm" autocomplete="on"><div class="mk">' + icon('box') + '</div><div><h1>เข้าสู่ระบบผู้ดูแล</h1><p class="hint">' + esc(C.ORG_SUB || '') + ' · สำหรับเจ้าหน้าที่เท่านั้น</p></div>' +
     '<div><label for="ln">ชื่อผู้ใช้งาน <em>*</em></label><input id="ln" name="name" type="text" autocomplete="name" required minlength="2" maxlength="60" placeholder="ชื่อ-สกุล หรือชื่อเล่น" value="' + esc(name) + '"><p class="hint">ใช้บันทึกว่าใครเป็นผู้ทำรายการ</p></div>' +
     '<div><label for="lp">รหัสผ่าน <em>*</em></label><input id="lp" name="pin" type="password" autocomplete="current-password" required></div>' +
-    '<p class="err" role="alert" id="loginErr" ' + (msg ? '' : 'hidden') + '>' + esc(msg || '') + '</p><button class="btn pri" type="submit">เข้าสู่ระบบ</button><a class="btn ghost" href="index.html">กลับไปหน้าขอยืมอุปกรณ์</a></form></div></div>';
+    (API.demo ? '<p class="demo-note">โหมดตัวอย่าง — ใช้รหัสผ่าน <b>' + esc(window.ELC_DEMO.pin) + '</b> (ชื่อผู้ใช้ใส่อะไรก็ได้)</p>' : '') +
+    '<p class="err" role="alert" id="loginErr" ' + (msg ? '' : 'hidden') + '>' + esc(msg || '') + '</p><button class="btn pri" type="submit">เข้าสู่ระบบ</button>' +
+    (API.demo ? '' : '<a class="btn ghost" href="?demo=1">ดูตัวอย่างระบบ (ข้อมูลจำลอง)</a>') + '<a class="btn ghost" href="index.html">กลับไปหน้าขอยืมอุปกรณ์</a></form></div></div>';
   var f = $('#loginForm');
   f.addEventListener('submit', function (e) {
     e.preventDefault(); var b = f.querySelector('button'), er = $('#loginErr'); b.disabled = true; b.classList.add('busy'); er.hidden = true;
@@ -402,7 +404,7 @@ function doPrint(btn) {
 function stopScan() { if (scanTimer) { clearInterval(scanTimer); scanTimer = null; } if (scanStream) { scanStream.getTracks().forEach(function (t) { t.stop(); }); scanStream = null; } }
 function resolveCode(t) {
   t = String(t || '').trim(); if (!t) return Promise.resolve(null);
-  var m = /[?&]id=(A\d{3,})/i.exec(t) || /^(A\d{3,})$/i.exec(t);
+  var m = /[?&]id=((?:A|DEMO)\d{3,})/i.exec(t) || /^((?:A|DEMO)\d{3,})$/i.exec(t);
   if (m) return Promise.resolve(m[1].toUpperCase());
   return getAssets().then(function (l) {
     var q = t.toLowerCase(), ex = l.filter(function (a) { return String(a.assetNo).toLowerCase() === q; });
@@ -485,7 +487,7 @@ document.addEventListener('click', function (e) {
     case 'photo': pickPhoto(id); break;
     case 'printOne': S.preselect = [id]; goto('#/print'); break;
     case 'qrmake': el.disabled = true; el.classList.add('busy'); genQr([id], false).then(function (r) { toast(r.fail ? 'สร้าง QR ไม่สำเร็จ' + (r.err ? ' — ' + r.err : '') : 'สร้าง QR แล้ว และบันทึกลงชีตแล้ว', !!r.fail); invalidate(); route(); }); break;
-    case 'viewPhoto': el.disabled = true; API.call('assetGetPhoto', { fileId: el.dataset.fid }, { timeout: 90000 }).then(function (r) { dlg('<img src="' + esc(r.dataUri) + '" alt="รูปครุภัณฑ์">'); }).catch(function (x) { toast(x.message, true); }).then(function () { el.disabled = false; }); break;
+    case 'viewPhoto': el.disabled = true; el.classList.add('busy'); API.call('assetGetPhoto', { fileId: el.dataset.fid }, { timeout: 90000 }).then(function (r) { dlg('<img src="' + esc(r.dataUri) + '" alt="รูปครุภัณฑ์">'); }).catch(function (x) { toast(x.message, true); }).then(function () { el.disabled = false; el.classList.remove('busy'); }); break;
     case 'rmPhoto': if (window.confirm('ถอดรูปนี้ออกจากรายการ? (ไฟล์ยังเก็บไว้ใน Drive เป็นหลักฐาน)')) API.call('assetRemovePhoto', { id: id, fileId: el.dataset.fid }).then(function () { toast('ถอดรูปแล้ว'); invalidate(); route(); }).catch(function (x) { toast(x.message, true); }); break;
     case 'doPrint': doPrint(el); break;
     case 'regenAll':
@@ -513,13 +515,13 @@ function route() {
   if (!sess) { S.sess = null; if (!$('#loginForm')) { $('#root').innerHTML = ''; renderLogin(); } return; }
   S.sess = sess; shell();
   var parts = location.hash.replace(/^#\/?/, '').split('?')[0].split('/'), k = parts[0] || '';
-  markNav(k === 'asset' ? 'assets' : k); loading();
+  markNav(k === 'asset' ? 'assets' : k); loading(k === 'asset' ? (parts[1] === 'new' || parts[2] === 'edit' ? 'form' : 'detail') : k === '' ? 'dash' : k === 'scan' ? 'plain' : 'list');
   (S.cfg ? Promise.resolve() : API.call('config').then(function (c) { S.cfg = c; })).then(function () {
     if (nid !== navId) return;
     if (k === 'asset') {
       var id = parts[1] || '';
       if (id === 'new') return viewAssetForm(null, nid);
-      if (!/^A\d{3,}$/.test(id)) return goto('#/assets');
+      if (!/^(?:A|DEMO)\d{3,}$/.test(id)) return goto('#/assets');
       if (parts[2] === 'edit') return viewAssetForm(id, nid);
       return viewAsset(id, ['loan', 'return', 'extend', 'check', 'void'].indexOf(parts[2]) >= 0 ? parts[2] : '', nid);
     }

@@ -4,7 +4,7 @@ const GAS=process.env.GAS_DIR||path.join(__dirname,'..','gas');
 const strict=process.argv.includes('strict');
 function mkSheet(name){const s={name,data:[[]],maxC:26,imgs:{},
  getLastRow(){let l=0;this.data.forEach((r,i)=>{if(r&&r.some(v=>v!==''&&v!=null))l=i+1});return l},
- getMaxColumns(){return this.maxC},insertColumnsAfter(a,n){this.maxC+=n},setFrozenRows(){},setRowHeight(){},setColumnWidth(){},
+ deleteRows(a,n){this.data.splice(a-1,n)},getMaxColumns(){return this.maxC},insertColumnsAfter(a,n){this.maxC+=n},setFrozenRows(){},setRowHeight(){},setColumnWidth(){},
  getRange(r,c,nr=1,nc=1){const sh=this;if(strict&&c+nc-1>sh.maxC)throw new Error('outside grid '+name);
   return{getDisplayValues(){return this.getValues().map(r=>r.map(String))},getValues(){const o=[];for(let i=0;i<nr;i++){const row=[];for(let j=0;j<nc;j++){const v=(sh.data[r-1+i]||[])[c-1+j];row.push(v==null?'':v)}o.push(row)}return o},
   setValues(v){for(let i=0;i<nr;i++){sh.data[r-1+i]=sh.data[r-1+i]||[];for(let j=0;j<nc;j++)sh.data[r-1+i][c-1+j]=v[i][j]}return this},

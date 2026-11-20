@@ -810,7 +810,7 @@ function lc_qrRun_(force, who) {
 // ================================================================
 function lc_apiScan_(a) {
   const id = String(a.id || ''), k = String(a.k || '');
-  if (!/^A\d{3,}$/.test(id) || !/^[0-9a-f]{8}$/.test(k)) return { valid: false };
+  if (!/^(?:A|DEMO)\d{3,}$/.test(id) || !/^[0-9a-f]{8}$/.test(k)) return { valid: false };
   const S = lc_sheets_(), today = lc_today_();
   const o = lc_liveAssets_(S).filter(function (x) { return x.assetId === id; })[0];
   if (!o || !o.qrKey || !lc_safeEq_(o.qrKey, k)) return { valid: false };
@@ -1041,4 +1041,166 @@ function lcReqDecide(reqId, decision, note, by, borrowerType) {
 function lcAdminReturn(loanId, damaged, conditionIn, by) {
   by = lc_txt_(by, 60); if (by.length < 2) throw lc_bad_('กรุณาระบุชื่อผู้ทำรายการ');
   return lc_apiLoanReturn_({ loanId: loanId, damaged: damaged === true, conditionIn: conditionIn }, { name: by });
+}
+
+// ================================================================
+//  ข้อมูลตัวอย่าง (ทดสอบ / ดูตัวอย่างหน้าจอ)
+//  · ทุกแถวที่สร้างมีรหัสขึ้นต้น DEMO (DEMO001, DEMOL001, DEMOR001) จึงแยกออกจากข้อมูลจริงและลบทิ้งได้หมดด้วย lcDemoClear()
+//  · วันที่ทั้งหมดคำนวณจากวันนี้ — เกินกำหนด / ใกล้ครบ / ถึงรอบตรวจ ยังแสดงครบทุกครั้งที่กดสร้างใหม่
+//  · ใช้ได้ 2 ที่: (1) ชีตจริง ผ่านปุ่มในศูนย์ควบคุมอุปกรณ์ หรือรัน lcDemoSeed() ในตัวแก้ไข
+//                  (2) โหมดตัวอย่างบนเว็บ /loan (loan/demo.js โหลดไฟล์นี้ไปรันกับชีตจำลองในเบราว์เซอร์ ไม่แตะข้อมูลจริง)
+// ================================================================
+const LC_DEMO_PREFIX = 'DEMO';
+const LC_DEMO_PHONE = '0812345001';          // เบอร์ของคำขอตัวอย่าง DEMOR001 (ใช้ทดสอบหน้า "ติดตามคำขอ")
+function lc_isDemo_(id) { return String(id == null ? '' : id).indexOf(LC_DEMO_PREFIX) === 0; }
+
+function lc_demoDeleteRows_(sh, cols, width) {
+  // แถวใดแถวหนึ่งที่ "รหัสของมันเอง" หรือ "รหัสอุปกรณ์" ขึ้นต้น DEMO ถือเป็นข้อมูลตัวอย่าง
+  // (รวมรายการยืม/คำขอที่เกิดจากการทดลองอนุมัติ-ยืมอุปกรณ์ตัวอย่าง ซึ่งได้เลขรหัสปกติ)
+  const last = sh.getLastRow();
+  if (last < 2) return 0;
+  const rows = sh.getRange(2, 1, last - 1, width).getValues(), hit = [];
+  rows.forEach(function (r, i) { if (cols.some(function (c) { return lc_isDemo_(r[c]); })) hit.push(i + 2); });
+  let n = 0, k = hit.length - 1;
+  while (k >= 0) {   // ลบจากล่างขึ้นบน เป็นช่วงต่อเนื่อง เพื่อให้เลขแถวที่ยังไม่ลบไม่เลื่อน
+    let start = hit[k], cnt = 1;
+    while (k - 1 >= 0 && hit[k - 1] === start - 1) { start--; cnt++; k--; }
+    sh.deleteRows(start, cnt); n += cnt; k--;
+  }
+  return n;
+}
+function lc_demoCols_(headers, a, b) { return [headers.indexOf(a)].concat(b ? [headers.indexOf(b)] : []); }
+function lc_demoClearRows_(S) {
+  return {
+    assets: lc_demoDeleteRows_(S.reg, lc_demoCols_(ASSET_HEADERS, 'assetId'), ASSET_HEADERS.length),
+    loans: lc_demoDeleteRows_(S.loan, lc_demoCols_(LC_LOAN_HEADERS, 'loanId', 'assetId'), LC_LOAN_HEADERS.length),
+    checks: lc_demoDeleteRows_(S.chk, lc_demoCols_(LC_CHECK_HEADERS, 'assetId'), LC_CHECK_HEADERS.length),
+    requests: lc_demoDeleteRows_(lc_reqSheet_(), lc_demoCols_(LC_REQ_HEADERS, 'reqId', 'assetId'), LC_REQ_HEADERS.length),
+    log: lc_demoDeleteRows_(S.log, lc_demoCols_(LC_LOG_HEADERS, 'assetId'), LC_LOG_HEADERS.length)
+  };
+}
+
+/** จำนวนข้อมูลตัวอย่างที่มีอยู่ตอนนี้ (ใช้แสดงสถานะบนปุ่มในหน้าแอดมิน) */
+function lcDemoStatus() {
+  const S = lc_sheets_(), cnt = function (sh, headers, a, b) {
+    const last = sh.getLastRow(); if (last < 2) return 0;
+    const cols = lc_demoCols_(headers, a, b);
+    return sh.getRange(2, 1, last - 1, headers.length).getValues().filter(function (r) { return cols.some(function (c) { return lc_isDemo_(r[c]); }); }).length;
+  };
+  const o = {
+    assets: cnt(S.reg, ASSET_HEADERS, 'assetId'), loans: cnt(S.loan, LC_LOAN_HEADERS, 'loanId', 'assetId'),
+    checks: cnt(S.chk, LC_CHECK_HEADERS, 'assetId'), requests: cnt(lc_reqSheet_(), LC_REQ_HEADERS, 'reqId', 'assetId')
+  };
+  o.has = o.assets > 0;
+  o.frontendUrl = lc_prop_('LC_FRONTEND_URL') || '';
+  o.trackReqId = 'DEMOR001'; o.trackPhone = LC_DEMO_PHONE;
+  return o;
+}
+
+/** ลบข้อมูลตัวอย่างทั้งหมด (เฉพาะแถวที่รหัสขึ้นต้น DEMO — ข้อมูลจริงไม่ถูกแตะ) */
+function lcDemoClear(by) {
+  const S = lc_sheets_();
+  const r = lc_withLock_(function () { return lc_demoClearRows_(S); });
+  Logger.log('ลบข้อมูลตัวอย่างแล้ว ' + JSON.stringify(r));
+  return r;
+}
+
+/** สร้างข้อมูลตัวอย่างชุดใหม่ (ลบชุดเดิมก่อนเสมอ จึงกดซ้ำได้ ไม่ซ้อนกัน) */
+function lcDemoSeed(by) {
+  by = lc_txt_(by, 60) || 'ข้อมูลตัวอย่าง';
+  const S = lc_sheets_(), ix = lc_ix_(), L = lc_lix_(), X = lc_reqIx_(), today = lc_today_();
+  const day = function (n) { return lc_addDays_(today, n); };
+  const at = function (n, hm) { return day(n) + ' ' + (hm || '09:30') + ':00'; };
+  const base = lc_prop_('LC_FRONTEND_URL') || 'https://example.github.io/loan/';
+  const KEYS = ['d3a0c001', 'd3a0c002', 'd3a0c003', 'd3a0c004', 'd3a0c005', 'd3a0c006', 'd3a0c007', 'd3a0c008', 'd3a0c009', 'd3a0c010', 'd3a0c011', 'd3a0c012'];
+  const CAT = { aid: 'กายอุปกรณ์ / เครื่องช่วย', pt: 'เครื่องมือกายภาพบำบัด', med: 'ครุภัณฑ์การแพทย์', bed: 'เตียง / เฟอร์นิเจอร์การแพทย์' };
+  const ST = LC_STATUSES, OK = ST[0];
+  // [id, ชื่อ, หมวด, ยี่ห้อ, รุ่น, สถานที่, ผู้รับผิดชอบ, ราคา, วิธีได้มา, สถานะ, ให้ยืม, รอบตรวจ(วัน), ตรวจล่าสุด(วันก่อน)]
+  const A = [
+    ['DEMO001', 'Walker อลูมิเนียม พับได้', CAT.aid, 'Drive', 'Nimbo 2G', 'ห้องกายภาพบำบัด', 'ปทุมพร ใจดี', 3200, 'ซื้อ', OK, 'Y', 180, 40],
+    ['DEMO002', 'รถเข็นผู้ป่วย (Wheelchair)', CAT.aid, 'Karma', 'KM-1500', 'ห้องกายภาพบำบัด', 'ปทุมพร ใจดี', 5800, 'ซื้อ', OK, 'Y', 180, 60],
+    ['DEMO003', 'ไม้เท้า 4 ขา ปรับระดับได้', CAT.aid, 'Yuwell', 'YU-841', 'ห้องกายภาพบำบัด', 'ปทุมพร ใจดี', 650, 'บริจาค', OK, 'Y', '', ''],
+    ['DEMO004', 'เครื่องอัลตราซาวด์บำบัด', CAT.pt, 'Chattanooga', 'Intelect Mobile 2', 'ห้องกายภาพบำบัด', 'สมศรี รักษ์ดี', 78000, 'ซื้อ', OK, 'N', 90, 120],
+    ['DEMO005', 'เตียงปรับระดับไฟฟ้า 3 ไกร์', CAT.bed, 'Linak', 'LB-3E', 'คลังอุปกรณ์', 'สมศรี รักษ์ดี', 24500, 'โอน / รับโอน', OK, 'Y', 180, 30],
+    ['DEMO006', 'เครื่องกระตุ้นไฟฟ้า TENS', CAT.pt, 'Omron', 'HV-F128', 'ห้องกายภาพบำบัด', 'สมศรี รักษ์ดี', 1900, 'ซื้อ', ST[1], 'Y', 90, 15],
+    ['DEMO007', 'เครื่องวัดความดันดิจิทัล', CAT.med, 'Omron', 'HEM-7156', 'ห้องตรวจโรค', 'วรรณา สุขใจ', 1800, 'ซื้อ', OK, 'Y', 365, 100],
+    ['DEMO008', 'ถังออกซิเจนพกพา 2 คิว', CAT.med, 'Thai Oxygen', 'P-2', 'คลังอุปกรณ์', 'วรรณา สุขใจ', 4200, 'บริจาค', OK, 'Y', 30, 8],
+    ['DEMO009', 'ไม้ค้ำยันรักแร้ (คู่)', CAT.aid, 'Medline', 'MDS80', 'ห้องกายภาพบำบัด', 'ปทุมพร ใจดี', 900, 'ซื้อ', OK, 'Y', '', ''],
+    ['DEMO010', 'เครื่องวัดออกซิเจนปลายนิ้ว', CAT.med, 'Yuwell', 'YX306', 'ห้องตรวจโรค', 'วรรณา สุขใจ', 750, 'ซื้อ', OK, 'Y', 180, 20],
+    ['DEMO011', 'Hot pack พร้อมตู้อุ่น', CAT.pt, 'Chattanooga', 'HydroCollator', 'ห้องกายภาพบำบัด', 'สมศรี รักษ์ดี', 12000, 'ซื้อ', OK, 'N', 365, 200],
+    ['DEMO012', 'ที่นอนลมป้องกันแผลกดทับ', CAT.bed, 'Alpha', 'Bio-Flo', 'คลังอุปกรณ์', 'สมศรี รักษ์ดี', 3500, 'บริจาค', OK, 'Y', 180, 50]
+  ];
+  const aRows = A.map(function (a, i) {
+    const r = ASSET_HEADERS.map(function () { return ''; }), chk = a[12] === '' ? '' : at(-a[12], '10:15');
+    r[ix.assetId] = a[0]; r[ix.assetNo] = 'DEMO-' + a[0].slice(-3); r[ix.name] = a[1]; r[ix.category] = a[2]; r[ix.brand] = a[3]; r[ix.model] = a[4];
+    r[ix.serialNo] = 'SN-DEMO-' + (1000 + i); r[ix.spec] = 'ข้อมูลตัวอย่างสำหรับทดสอบระบบ'; r[ix.acquireMethod] = a[8]; r[ix.fundSource] = 'เงินบำรุง';
+    r[ix.unitPrice] = a[7]; r[ix.acquireDate] = day(-400 - i * 37); r[ix.warrantyEnd] = day(i % 3 === 0 ? -30 : 200); r[ix.lifeYears] = 8;
+    r[ix.location] = a[5]; r[ix.custodian] = a[6]; r[ix.status] = a[9]; r[ix.loanable] = a[10]; r[ix.remark] = '[ตัวอย่าง] ลบได้จากปุ่ม ลบข้อมูลตัวอย่าง';
+    r[ix.photoIds] = '[]'; r[ix.createdAt] = at(-60); r[ix.createdBy] = by; r[ix.updatedAt] = at(-5); r[ix.updatedBy] = by;
+    r[ix.checkIntervalDays] = a[11];
+    r[ix.qrKey] = KEYS[i]; r[ix.qrText] = base + 'scan.html?id=' + a[0] + '&k=' + KEYS[i]; r[ix.qrAt] = at(-59);
+    if (chk) { r[ix.lastCheckAt] = chk; r[ix.lastCheckBy] = by; r[ix.lastCheckResult] = a[0] === 'DEMO006' ? LC_CHECK_RESULTS[2] : LC_CHECK_RESULTS[0]; r[ix.nextCheckDue] = lc_addDays_(chk.slice(0, 10), a[11]); }
+    return r;
+  });
+  // [loanId, assetIdx, ผู้ยืม, ประเภท, เบอร์, วันยืม(เทียบวันนี้), กำหนดคืน, สถานะ, สภาพตอนคืน, วันคืน]
+  const O = LC_BORROWER_TYPES, PT = O[1], ST0 = O[0], AS = O[2];
+  const LN = [
+    ['DEMOL001', 1, 'นางประไพ แสนสุข', PT, '0891110001', -10, 4, LC_LOAN_OPEN, '', ''],
+    ['DEMOL002', 2, 'นายบุญมี ศรีสวัสดิ์', PT, '0891110002', -12, -5, LC_LOAN_OPEN, '', ''],
+    ['DEMOL003', 4, 'พยาบาลวิภา ชัยมงคล', ST0, '0891110003', -6, 1, LC_LOAN_OPEN, '', ''],
+    ['DEMOL004', 11, 'อสม. สมจิตร พงษ์ดี', AS, '0891110004', -20, 10, LC_LOAN_OPEN, '', ''],
+    ['DEMOL005', 0, 'นายสมเกียรติ มีสุข', PT, '0891110005', -40, -33, LC_LOAN_DONE, 'สภาพปกติ', -33],
+    ['DEMOL006', 7, 'นางสาวนภา รุ่งเรือง', PT, '0891110006', -35, -28, LC_LOAN_DONE, 'สภาพปกติ', -29],
+    ['DEMOL007', 5, 'นายธนา วงศ์ใหญ่', PT, '0891110007', -25, -18, LC_LOAN_DONE, 'ปุ่มปรับความแรงชำรุด', -17],
+    ['DEMOL008', 8, 'ศูนย์สุขภาพชุมชนบ้านใหม่', O[3], '0891110008', -15, -8, LC_LOAN_DONE, 'สภาพปกติ', -9]
+  ];
+  const lRows = LN.map(function (l) {
+    const r = LC_LOAN_HEADERS.map(function () { return ''; }), a = A[l[1]], done = l[7] === LC_LOAN_DONE;
+    r[L.loanId] = l[0]; r[L.assetId] = a[0]; r[L.assetNo] = 'DEMO-' + a[0].slice(-3); r[L.assetName] = a[1];
+    r[L.borrowerName] = l[2]; r[L.borrowerType] = l[3]; r[L.phone] = l[4]; r[L.loanDate] = day(l[5]); r[L.dueDate] = day(l[6]); r[L.status] = l[7];
+    r[L.conditionOut] = 'สภาพปกติ ตรวจก่อนส่งมอบ'; r[L.note] = '[ตัวอย่าง]'; r[L.createdAt] = at(l[5]); r[L.createdBy] = by; r[L.updatedAt] = at(done ? l[9] : l[5]);
+    if (done) { r[L.returnDate] = day(l[9]); r[L.conditionIn] = l[8]; r[L.returnedBy] = by; }
+    return r;
+  });
+  const cRows = [
+    ['DEMOC001', at(-40, '10:15'), 'DEMO001', 'DEMO-001', A[0][1], LC_CHECK_RESULTS[0], '', by, day(140)],
+    ['DEMOC002', at(-15, '10:15'), 'DEMO006', 'DEMO-006', A[5][1], LC_CHECK_RESULTS[2], 'ปุ่มปรับความแรงใช้งานไม่ได้ ส่งช่างตรวจสอบ', by, day(75)],
+    ['DEMOC003', at(-120, '10:15'), 'DEMO004', 'DEMO-004', A[3][1], LC_CHECK_RESULTS[1], 'หัวตรวจมีรอยขีดข่วนเล็กน้อย ยังใช้งานได้', by, day(-30)],
+    ['DEMOC004', at(-8, '10:15'), 'DEMO008', 'DEMO-008', A[7][1], LC_CHECK_RESULTS[0], '', by, day(22)],
+    ['DEMOC005', at(-20, '10:15'), 'DEMO010', 'DEMO-010', A[9][1], LC_CHECK_RESULTS[0], '', by, day(160)]
+  ];
+  // [reqId, assetIdx, ผู้ขอ, เบอร์, จาก, ถึง, วัตถุประสงค์, สถานะ, ตัดสินเมื่อ, หมายเหตุ, loanId]
+  const R = [
+    ['DEMOR001', 0, 'สมชาย ใจดี', LC_DEMO_PHONE, 1, 8, 'ใช้ฝึกเดินหลังผ่าตัดเข่า', LC_REQ_PENDING, '', '', ''],
+    ['DEMOR002', 6, 'มาลี สุขสันต์', '0812345002', 0, 7, 'วัดความดันที่บ้านผู้สูงอายุ', LC_REQ_PENDING, '', '', ''],
+    ['DEMOR003', 1, 'ประยูร แก้วมณี', '0812345003', 5, 12, 'ใช้พาคุณพ่อไปโรงพยาบาล', LC_REQ_PENDING, '', '', ''],
+    ['DEMOR004', 4, 'พยาบาลวิภา ชัยมงคล', '0812345004', -6, 1, 'ใช้ในโครงการเยี่ยมบ้าน', LC_REQ_OK, -6, 'รับของที่ห้องกายภาพบำบัดได้เลย', 'DEMOL003'],
+    ['DEMOR005', 5, 'สุดา เพชรดี', '0812345005', -3, 4, 'ใช้บรรเทาอาการปวดหลัง', LC_REQ_NO, -3, 'เครื่องอยู่ระหว่างส่งซ่อม ขออภัยในความไม่สะดวก', '']
+  ].map(function (q) {
+    const r = LC_REQ_HEADERS.map(function () { return ''; }), a = A[q[1]];
+    r[X.reqId] = q[0]; r[X.assetId] = a[0]; r[X.assetNo] = 'DEMO-' + a[0].slice(-3); r[X.assetName] = a[1]; r[X.requesterName] = q[2]; r[X.phone] = q[3];
+    r[X.neededFrom] = day(q[4]); r[X.neededTo] = day(q[5]); r[X.purpose] = q[6]; r[X.status] = q[7]; r[X.createdAt] = at(q[7] === LC_REQ_PENDING ? -1 : q[8] - 1, '14:05');
+    if (q[8] !== '') { r[X.decidedAt] = at(q[8], '11:20'); r[X.decidedBy] = by; r[X.decisionNote] = q[9]; r[X.loanId] = q[10]; }
+    return r;
+  });
+  const logs = [];
+  aRows.forEach(function (r, i) { logs.push([at(-60, '09:' + ('0' + i).slice(-2)), r[ix.assetId], r[ix.assetNo], 'create', by, JSON.stringify({ name: r[ix.name], status: r[ix.status] })]); });
+  LN.forEach(function (l) {
+    logs.push([at(l[5], '13:00'), A[l[1]][0], 'DEMO-' + A[l[1]][0].slice(-3), 'loan_out', by, JSON.stringify({ loanId: l[0], borrower: l[2], due: day(l[6]) })]);
+    if (l[7] === LC_LOAN_DONE) logs.push([at(l[9], '15:40'), A[l[1]][0], 'DEMO-' + A[l[1]][0].slice(-3), 'loan_in', by, JSON.stringify({ loanId: l[0], damaged: l[8] !== 'สภาพปกติ' })]);
+  });
+  cRows.forEach(function (c) { logs.push([c[1], c[2], c[3], 'check', by, JSON.stringify({ result: c[5], note: c[6] })]); });
+  logs.sort(function (x, y) { return String(x[0]).localeCompare(String(y[0])); });
+
+  return lc_withLock_(function () {
+    lc_demoClearRows_(S);
+    const n = S.reg.getLastRow() + 1;
+    aRows.forEach(function (r, i) { lc_writeAssetRow_(S.reg, n + i, r); });
+    const put = function (sh, rows, w) { if (rows.length) sh.getRange(sh.getLastRow() + 1, 1, rows.length, w).setNumberFormat('@').setValues(rows); };
+    put(S.loan, lRows, LC_LOAN_HEADERS.length); put(S.chk, cRows, LC_CHECK_HEADERS.length);
+    put(lc_reqSheet_(), R, LC_REQ_HEADERS.length); put(S.log, logs, LC_LOG_HEADERS.length);
+    const out = { assets: aRows.length, loans: lRows.length, checks: cRows.length, requests: R.length, log: logs.length, trackReqId: 'DEMOR001', trackPhone: LC_DEMO_PHONE };
+    Logger.log('สร้างข้อมูลตัวอย่างแล้ว ' + JSON.stringify(out));
+    return out;
+  });
 }

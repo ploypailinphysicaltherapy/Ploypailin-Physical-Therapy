@@ -1954,6 +1954,19 @@ html{-webkit-text-size-adjust:100%}
 .eqc-b.ok{color:var(--success)}.eqc-b.bad{color:var(--danger)}.eqc-b.mid{color:#b45309}.eqc-b.off{color:var(--text-tertiary)}
 .eqc-b.loan{color:var(--primary-dark);border-color:var(--primary-light);background:var(--primary-light)}
 .eqc-empty{display:grid;justify-items:center;gap:8px;padding:36px 16px;text-align:center;color:var(--text-secondary);border:1px dashed var(--border-strong);border-radius:16px}
+/* V32: โครงโหลด + แถบข้อมูลตัวอย่าง ในศูนย์ควบคุมอุปกรณ์ */
+@keyframes eqcShine{to{background-position:-200% 0}}
+.eqc-sk{display:grid;gap:10px}
+.eqc-sk i{display:block;height:64px;border-radius:12px;background:linear-gradient(90deg,var(--border) 25%,color-mix(in srgb,var(--border) 45%,transparent) 50%,var(--border) 75%);background-size:200% 100%;animation:eqcShine 1.3s linear infinite}
+.eqc-sk i:nth-child(2){opacity:.8}.eqc-sk i:nth-child(3){opacity:.6}.eqc-sk i:nth-child(4){opacity:.45}
+.eqc-btn.is-busy{pointer-events:none;opacity:.65;cursor:progress}
+.eqc-btn.is-busy .material-icons-outlined{animation:eqcSpin .9s linear infinite}
+@keyframes eqcSpin{to{transform:rotate(360deg)}}
+.eqc-demo{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-bottom:12px;padding:10px 14px;border:1px dashed var(--border-strong);border-radius:12px;font-size:.875rem;color:var(--text-secondary)}
+.eqc-demo b{color:var(--text-primary,inherit)}
+.eqc-demo .eqc-demo-links{display:flex;flex-wrap:wrap;gap:6px 14px;margin-left:auto}
+.eqc-demo a{color:inherit;font-weight:600}
+@media (prefers-reduced-motion:reduce){.eqc-sk i,.eqc-btn.is-busy .material-icons-outlined{animation:none}}
 .eqc-empty .mc{--s:96px}
 .eqc-empty b{font:600 1rem/1.4 var(--font-display);color:var(--text-primary)}
 .eqc-steps{margin:12px 0 0;padding:0;list-style:none;display:grid;gap:8px;text-align:left;max-width:520px}
@@ -3155,6 +3168,12 @@ html{-webkit-text-size-adjust:100%}
 
             <section id="eqc-reg" class="eqc-pane">
               <p class="eqc-hint" style="margin-bottom:10px"><span class="material-icons-outlined" aria-hidden="true" style="font-size:16px;vertical-align:-3px">visibility</span> หน้านี้เป็นระบบแอดมินสำหรับ<b>ดูข้อมูล</b>เท่านั้น — เพิ่ม/แก้ครุภัณฑ์ ให้ยืม รับคืน ตรวจสภาพ และพิมพ์ QR ทำที่เว็บศูนย์ยืม-คืน (ปุ่ม “เปิดศูนย์ยืม-คืน”)</p>
+              <div class="eqc-demo" id="eqc-demo" aria-live="polite">
+                <span id="eqc-demo-st">ข้อมูลตัวอย่างสำหรับทดสอบระบบ</span>
+                <button type="button" class="eqc-btn" id="eqc-demo-seed" onclick="eqcDemoSeed(this)"><span class="material-icons-outlined" aria-hidden="true">science</span>สร้างข้อมูลตัวอย่าง</button>
+                <button type="button" class="eqc-btn" id="eqc-demo-clear" onclick="eqcDemoClear(this)" hidden><span class="material-icons-outlined" aria-hidden="true">delete_sweep</span>ลบข้อมูลตัวอย่าง</button>
+                <span class="eqc-demo-links" id="eqc-demo-links" hidden></span>
+              </div>
               <div class="eqc-metrics" id="eqc-metrics"></div>
               <div class="eqc-bar">
                 <div class="eqc-search"><span class="material-icons-outlined" aria-hidden="true">search</span><input type="search" id="eqc-q" placeholder="ค้นหา เลขครุภัณฑ์ ชื่อ ยี่ห้อ รุ่น Serial สถานที่" autocomplete="off" aria-label="ค้นหาครุภัณฑ์"></div>
@@ -3433,7 +3452,7 @@ html{-webkit-text-size-adjust:100%}
   }
   function eqcReqLoad() {
     var el = document.getElementById('eqc-req');
-    if (!_eqc.req) el.innerHTML = '<div class="eqc-empty">กำลังโหลดคำขอยืม…</div>';
+    if (!_eqc.req) el.innerHTML = eqcSk(3);
     eqcRun('lcReqList', [], function (r) { if (!r || !r.pending) return eqcToast('โหลดคำขอยืมไม่สำเร็จ', true); _eqc.req = r; eqcReqSetBadge(r); eqcReqRender(); },
       function () { el.innerHTML = '<div class="eqc-empty"><b>โหลดคำขอยืมไม่สำเร็จ</b>ตรวจสอบว่าวาง LoanCenter.gs เวอร์ชันล่าสุดและ Deploy เวอร์ชันใหม่แล้ว</div>'; });
   }
@@ -3501,9 +3520,32 @@ html{-webkit-text-size-adjust:100%}
     }
     eqcLoad();
   }
+  function eqcSk(n) { var h = ''; for (var i = 0; i < n; i++) h += '<i></i>'; return '<div class="eqc-sk" role="status" aria-busy="true" aria-label="กำลังโหลด">' + h + '</div>'; }
+  function eqcBusy(btn, on) { if (!btn) return; btn.classList.toggle('is-busy', !!on); btn.setAttribute('aria-disabled', on ? 'true' : 'false'); }
+  // ----- ข้อมูลตัวอย่าง: สร้าง/ลบในชีตจริง (ทุกแถวมีรหัสขึ้นต้น DEMO แยกจากข้อมูลจริง) -----
+  function eqcDemoPaint(d) {
+    var st = document.getElementById('eqc-demo-st'), clr = document.getElementById('eqc-demo-clear'), sd = document.getElementById('eqc-demo-seed'), lk = document.getElementById('eqc-demo-links');
+    if (!st) return;
+    st.innerHTML = d && d.has ? '<b>มีข้อมูลตัวอย่างอยู่</b> · ครุภัณฑ์ ' + d.assets + ' · ยืม-คืน ' + d.loans + ' · คำขอ ' + d.requests + ' (ลบได้โดยไม่กระทบข้อมูลจริง)' : 'ยังไม่มีข้อมูลตัวอย่าง — สร้างเพื่อดูหน้าจอและลองยืม-คืนได้ทันที';
+    clr.hidden = !(d && d.has); sd.lastChild.nodeValue = d && d.has ? 'สร้างชุดใหม่' : 'สร้างข้อมูลตัวอย่าง';
+    var u = d && d.frontendUrl;
+    if (u) { lk.hidden = false; lk.innerHTML = '<a href="' + eqcEsc(u) + '?demo=1" target="_blank" rel="noopener">ดูหน้าผู้ยืม (แบบจำลอง)</a><a href="' + eqcEsc(u) + 'staff.html?demo=1" target="_blank" rel="noopener">ดูหน้าเจ้าหน้าที่ (แบบจำลอง)</a>' + (d.has ? '<a href="' + eqcEsc(u) + 'index.html#status" target="_blank" rel="noopener">ติดตามคำขอ: ' + eqcEsc(d.trackReqId) + ' / ' + eqcEsc(d.trackPhone) + '</a>' : ''); } else lk.hidden = true;
+  }
+  function eqcDemoStatus() { eqcRun('lcDemoStatus', [], function (d) { eqcDemoPaint(d); }, function () { var b = document.getElementById('eqc-demo'); if (b) b.hidden = true; }); }
+  function eqcDemoDone(msg) { _eqc.items = null; _eqc.ov = null; _eqc.req = null; eqcToast(msg); eqcLoad(); }
+  window.eqcDemoSeed = function (btn) {
+    if (!window.confirm('สร้างข้อมูลตัวอย่าง (ครุภัณฑ์ 12 · ยืม-คืน 8 · คำขอ 5) ลงในชีตนี้?\nรหัสทุกแถวขึ้นต้น DEMO และลบทิ้งได้หมดภายหลัง ข้อมูลจริงไม่ถูกแตะ')) return;
+    eqcBusy(btn, true);
+    eqcRun('lcDemoSeed', [eqcBy() || 'ข้อมูลตัวอย่าง'], function (r) { eqcBusy(btn, false); eqcDemoDone('สร้างข้อมูลตัวอย่างแล้ว ' + r.assets + ' รายการ'); }, function () { eqcBusy(btn, false); });
+  };
+  window.eqcDemoClear = function (btn) {
+    if (!window.confirm('ลบข้อมูลตัวอย่างทั้งหมด? (เฉพาะแถวที่รหัสขึ้นต้น DEMO — ข้อมูลจริงไม่ถูกแตะ)')) return;
+    eqcBusy(btn, true);
+    eqcRun('lcDemoClear', [eqcBy() || ''], function (r) { eqcBusy(btn, false); eqcDemoDone('ลบข้อมูลตัวอย่างแล้ว'); }, function () { eqcBusy(btn, false); });
+  };
   function eqcLoad() {
     if (_eqc.loading) return; _eqc.loading = true;
-    if (!_eqc.items) document.getElementById('eqc-list').innerHTML = '<div class="eqc-empty">กำลังโหลดทะเบียนครุภัณฑ์…</div>';
+    if (!_eqc.items) document.getElementById('eqc-list').innerHTML = eqcSk(5);
     eqcRun('assetList', [], function (r) { _eqc.items = r || [];
       eqcRun('lcAdminOverview', [], function (ov) { _eqc.ov = ov; _eqc.loading = false; eqcAfterLoad(); }, function () { _eqc.ov = null; _eqc.loading = false; eqcAfterLoad(); });
     }, function () { _eqc.loading = false; document.getElementById('eqc-list').innerHTML = '<div class="eqc-empty"><b>โหลดข้อมูลไม่สำเร็จ</b>ตรวจสอบการเชื่อมต่อ แล้วเปิดหน้านี้ใหม่อีกครั้ง</div>'; });
@@ -3513,7 +3555,7 @@ html{-webkit-text-size-adjust:100%}
     if (a) { if (u) { a.href = u; a.style.display = ''; } else a.style.display = 'none'; }
     var b = document.getElementById('eqc-loan-badge'), ov = _eqc.ov;
     if (b) { var n = ov ? (ov.dashboard.overdue || 0) : 0; b.hidden = !n; b.textContent = n ? 'เกินกำหนด ' + n : ''; }
-    eqcRender(); eqcReqBadge();
+    eqcRender(); eqcReqBadge(); eqcDemoStatus();
     if (_eqc.pendingOpen) { var pid = _eqc.pendingOpen; _eqc.pendingOpen = ''; if (eqcFind(pid)) eqcOpen(pid); else eqcToast('ไม่พบครุภัณฑ์รหัส ' + pid, true); }
   }
   function eqcFiltered() {
