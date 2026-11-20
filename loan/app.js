@@ -106,10 +106,10 @@ var NAV = [['', 'home', 'ภาพรวม'], ['assets', 'box', 'ครุภ�
 function shell() {
   if ($('#view')) return;
   var s = S.sess;
-  $('#root').innerHTML = '<div class="top"><div><b>' + esc(C.ORG_NAME) + '</b><br><span>' + esc(s.name) + (s.role === 'admin' ? ' · ผู้ดูแล' : '') + '</span></div><button class="btn sm" data-do="logout" aria-label="ออกจากระบบ">' + icon('out') + '</button></div>' +
+  $('#root').innerHTML = '<div class="top"><div><b>' + esc(C.ORG_NAME) + '</b><br><span>' + esc(s.name) + ' · ผู้ดูแล' + '</span></div><button class="btn sm" data-do="logout" aria-label="ออกจากระบบ">' + icon('out') + '</button></div>' +
     '<div class="app"><aside class="side"><div class="brand"><span class="mk">' + icon('box') + '</span><span>' + esc(C.ORG_NAME) + '<small>' + esc(C.ORG_SUB || '') + '</small></span></div>' +
     '<nav class="nav" aria-label="เมนูหลัก">' + NAV.map(function (n) { return '<a href="#/' + n[0] + '" data-nav="' + n[0] + '">' + icon(n[1]) + '<span>' + n[2] + '</span></a>'; }).join('') + '</nav>' +
-    '<div class="who"><b>' + esc(s.name) + '</b>' + (s.role === 'admin' ? 'ผู้ดูแลระบบ' : 'เจ้าหน้าที่') + (C.HOME_URL ? '<br><a href="' + esc(C.HOME_URL) + '">กลับระบบหลัก</a>' : '') + '<br><button class="btn sm" data-do="logout">' + icon('out') + 'ออกจากระบบ</button></div></aside>' +
+    '<div class="who"><b>' + esc(s.name) + '</b>' + 'ผู้ดูแลระบบ' + (C.HOME_URL ? '<br><a href="' + esc(C.HOME_URL) + '">กลับระบบหลัก</a>' : '') + '<br><button class="btn sm" data-do="logout">' + icon('out') + 'ออกจากระบบ</button></div></aside>' +
     '<main class="main" id="view" tabindex="-1"></main></div>';
 }
 function markNav(key) {
@@ -416,7 +416,7 @@ function viewScan() {
   setView('<div class="ph"><div><h1>สแกน QR</h1><p>สแกนป้ายบนเครื่องเพื่อเปิดรายการ แล้วกดให้ยืม / รับคืน / ตรวจสภาพ</p></div></div>' +
     '<div class="scanbox" id="sbox" hidden><video id="sv" playsinline muted></video><div class="frame"></div></div>' +
     '<div class="acts" style="margin:12px 0"><button class="btn pri" data-do="scanStart">' + icon('cam') + 'เปิดกล้องสแกน</button><button class="btn" data-do="scanStop" id="sstop" hidden>ปิดกล้อง</button></div>' +
-    '<p class="hint" id="shint">ถ้าเบราว์เซอร์ไม่รองรับการสแกนในหน้านี้ ให้ใช้แอปกล้องของมือถือสแกนป้าย แล้วกด “เจ้าหน้าที่: เข้าสู่ระบบ” หรือพิมพ์รหัสด้านล่าง</p>' +
+    '<p class="hint" id="shint">ถ้าเบราว์เซอร์ไม่รองรับการสแกนในหน้านี้ ให้ใช้แอปกล้องของมือถือสแกนป้าย แล้วกด “ผู้ดูแล: เข้าสู่ระบบ” หรือพิมพ์รหัสด้านล่าง</p>' +
     '<form id="manual" style="max-width:520px;margin-top:20px"><label for="mc">พิมพ์เลขครุภัณฑ์ หรือวางลิงก์จากป้าย</label><div style="display:flex;gap:8px"><input id="mc" type="text" autocomplete="off" placeholder="เช่น WK-001"><button class="btn" type="submit">เปิด</button></div></form>', 'สแกน QR');
   $('#manual').addEventListener('submit', function (e) { e.preventDefault(); openCode($('#mc').value); });
   getAssets().catch(function () {});
