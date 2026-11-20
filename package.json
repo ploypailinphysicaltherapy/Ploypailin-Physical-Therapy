@@ -1,0 +1,11 @@
+{
+  "name": "ploypailin-physical-therapy",
+  "version": "1.0.0",
+  "private": true,
+  "description": "PT Station — หน้าเว็บคลินิก + ศูนย์ยืม-คืนอุปกรณ์ (GitHub Pages) + ซอร์ส Google Apps Script (gas/)",
+  "scripts": {
+    "check": "node --check loan/app.js && node --check loan/api.js && node --check loan/config.js && node --check loan/qr.js && node --check loan/nav.js && cp gas/Code.gs /tmp/pt_code.js && node --check /tmp/pt_code.js && cp gas/LoanCenter.gs /tmp/pt_lc.js && node --check /tmp/pt_lc.js",
+    "test": "npm run check && TZ=Asia/Bangkok node tests/api_harness.js && TZ=Asia/Bangkok node tests/api_harness.js strict && TZ=Asia/Bangkok node tests/merge_test.js && TZ=Asia/Bangkok node tests/ui_smoke.js && TZ=Asia/Bangkok node tests/scan_smoke.js && TZ=Asia/Bangkok node tests/gas_ui_smoke.js"
+  },
+  "devDependencies": { "jsdom": "^24.1.0" }
+}
