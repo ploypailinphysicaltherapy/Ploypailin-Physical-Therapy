@@ -49,7 +49,7 @@
     m.innerHTML = (a.thumb ? '<img class="thumb" src="' + esc(a.thumb) + '" alt="">' : '') + '<p class="no">' + (a.assetNo ? 'เลขครุภัณฑ์ ' + esc(a.assetNo) : 'ยังไม่มีเลขครุภัณฑ์') + '</p><h1>' + esc(a.name) + '</h1>' +
       '<div class="st"><span class="badge ' + cls + '">' + esc(a.status) + '</span></div>' + (ln ? '<div class="big ' + ln[0] + '">' + esc(ln[1]) + '</div>' : '') +
       '<dl class="kv" style="margin-top:14px">' + rows.map(function (r) { return '<dt>' + esc(r[0]) + '</dt><dd>' + esc(r[1]) + '</dd>'; }).join('') + '</dl>' +
-      '<a class="btn pri cta" href="' + esc(link) + '">' + (staff ? 'เปิดในระบบ — ให้ยืม / รับคืน / ตรวจสภาพ' : 'เจ้าหน้าที่: เข้าสู่ระบบเพื่อทำรายการ') + '</a>';
+      '<a class="btn pri cta" href="' + esc(link) + '">' + (staff ? 'เปิดในระบบ — ให้ยืม / รับคืน / ตรวจสภาพ' : 'ผู้ดูแล: เข้าสู่ระบบเพื่อทำรายการ') + '</a>';
     document.title = (a.assetNo || a.name) + ' · ข้อมูลครุภัณฑ์';
   }).catch(function (e) { m.innerHTML = '<h1>เปิดข้อมูลไม่สำเร็จ</h1><p class="hint" style="margin-top:8px">' + esc(e.message) + '</p><button class="btn cta" onclick="location.reload()">ลองใหม่</button>'; });
 })();
