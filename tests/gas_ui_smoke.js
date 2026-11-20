@@ -23,10 +23,10 @@ const big=blocks.reduce((a,b)=>a.length>b.length?a:b);
  w.__t.eqcInit();
  setTimeout(()=>{
   const d=w.document;
-  T('assetList + lcAdminOverview both called',calls.join()==='assetList,lcAdminOverview',calls.join());
+  T('assetList + lcAdminOverview both called',calls.join()==='assetList,lcAdminOverview,lcReqList',calls.join());
   T('registry shows loan badge overdue',/เกินกำหนดคืน 3 วัน/.test(d.getElementById('eqc-list').innerHTML));
   T('no add/QR buttons in header',!/eqcForm\(\)|eqcQrDialog\(\)/.test(view.replace(/eqcForm\(\)\s*\{/,'')) );
-  T('open loan center link set',d.getElementById('eqc-open-lc').href==='https://x.github.io/p/loan/');
+  T('open loan center link set',d.getElementById('eqc-open-lc').href==='https://x.github.io/p/loan/staff.html');
   T('loan tab badge shows overdue',!d.getElementById('eqc-loan-badge').hidden&&/1/.test(d.getElementById('eqc-loan-badge').textContent));
   d.querySelector('[data-tab="loan"]').click();
   T('loan pane lists open loan',/สมชาย/.test(d.getElementById('eqc-loan').innerHTML)&&/เกินกำหนด 3 วัน/.test(d.getElementById('eqc-loan').innerHTML),d.getElementById('eqc-loan').innerHTML.slice(0,200));

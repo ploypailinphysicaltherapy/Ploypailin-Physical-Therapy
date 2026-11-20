@@ -1899,6 +1899,16 @@ html{-webkit-text-size-adjust:100%}
 @media (prefers-reduced-motion:reduce){.view.active .pg-hint .mc{animation:none}.pg-hint .mc{transition:none}}
 @media print{.tb-greet,.pg-hint{display:none !important}}
 </style>
+<style id="v31-requests">
+.rq-t{margin:18px 0 8px;font:600 .8125rem var(--font-display);color:var(--text-secondary)}
+.rq-link{margin-bottom:6px;word-break:break-all}
+.rq-card{border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:10px}
+.rq-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.rq-sub{font-size:.875rem;color:var(--text-secondary);margin-top:4px;overflow-wrap:anywhere}
+.rq-acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.rq-acts select,.rq-acts input{min-height:40px;padding:6px 10px;border:1px solid var(--border);border-radius:8px;background:transparent;color:inherit;font:inherit}
+.rq-acts input{flex:1;min-width:160px}
+</style>
 <style id="v28-equipment">
 /* ===== V28: ศูนย์ควบคุมอุปกรณ์ ===== */
 .eqc{max-width:1280px}
@@ -3139,6 +3149,7 @@ html{-webkit-text-size-adjust:100%}
             <div class="eqc-tabs" role="tablist" aria-label="ศูนย์ควบคุมอุปกรณ์">
               <button type="button" class="eqc-tab is-on" role="tab" data-tab="reg"><span class="material-icons-outlined" aria-hidden="true">inventory_2</span>ทะเบียนครุภัณฑ์</button>
               <button type="button" class="eqc-tab" role="tab" data-tab="loan"><span class="material-icons-outlined" aria-hidden="true">swap_horiz</span>การยืม-คืน<span class="eqc-soon" id="eqc-loan-badge" hidden></span></button>
+              <button type="button" class="eqc-tab" role="tab" data-tab="req"><span class="material-icons-outlined" aria-hidden="true">how_to_reg</span>คำขอยืม<span class="eqc-soon" id="eqc-req-badge" hidden></span></button>
               <button type="button" class="eqc-tab" role="tab" data-tab="log"><span class="material-icons-outlined" aria-hidden="true">history</span>ประวัติ</button>
             </div>
 
@@ -3156,6 +3167,8 @@ html{-webkit-text-size-adjust:100%}
             </section>
 
             <section id="eqc-loan" class="eqc-pane" hidden></section>
+
+            <section id="eqc-req" class="eqc-pane" hidden></section>
 
             <section id="eqc-log" class="eqc-pane" hidden>
               <p class="eqc-hint">ทุกการเพิ่ม แก้ไข แนบรูป ยืม คืน ตรวจสภาพ และยกเลิกรายการ ถูกบันทึกพร้อมวันเวลาและชื่อผู้บันทึกไว้ในชีต <b>AssetLog</b> ใช้ตรวจสอบย้อนหลังได้</p>
@@ -3406,6 +3419,70 @@ html{-webkit-text-size-adjust:100%}
   function eqcStatusBadge(s) { var c = s === 'ใช้งานได้' ? 'ok' : (s === 'ชำรุด / รอซ่อม' ? 'bad' : (s === 'ส่งซ่อม' ? 'mid' : 'off')); return '<span class="eqc-b ' + c + '">' + eqcEsc(s) + '</span>'; }
   function eqcFind(id) { return (_eqc.items || []).filter(function (x) { return x.assetId === id; })[0]; }
 
+  // ===== V31: คำขอยืม (จากเว็บสาธารณะ ไม่ต้องล็อกอิน) — อนุมัติ/ปฏิเสธ/รับคืน =====
+  function eqcReqBy() {
+    var n = eqcBy();
+    if (!n) { n = (window.prompt('ชื่อผู้ทำรายการ (บันทึกในประวัติ)') || '').trim(); if (n) { try { localStorage.setItem('eqcBy', n); } catch (e) {} } }
+    return n;
+  }
+  function eqcReqSetBadge(r) { var b = document.getElementById('eqc-req-badge'); if (b) { b.hidden = !r.pending.length; b.textContent = r.pending.length ? 'รอ ' + r.pending.length : ''; } }
+  function eqcReqBadge() {
+    google.script.run.withSuccessHandler(function (r) {
+      if (!r || !r.pending) return; _eqc.req = r; eqcReqSetBadge(r); if (_eqc.tab === 'req') eqcReqRender();
+    }).withFailureHandler(function () {}).lcReqList();
+  }
+  function eqcReqLoad() {
+    var el = document.getElementById('eqc-req');
+    if (!_eqc.req) el.innerHTML = '<div class="eqc-empty">กำลังโหลดคำขอยืม…</div>';
+    eqcRun('lcReqList', [], function (r) { if (!r || !r.pending) return eqcToast('โหลดคำขอยืมไม่สำเร็จ', true); _eqc.req = r; eqcReqSetBadge(r); eqcReqRender(); },
+      function () { el.innerHTML = '<div class="eqc-empty"><b>โหลดคำขอยืมไม่สำเร็จ</b>ตรวจสอบว่าวาง LoanCenter.gs เวอร์ชันล่าสุดและ Deploy เวอร์ชันใหม่แล้ว</div>'; });
+  }
+  function eqcReqRender() {
+    var el = document.getElementById('eqc-req'), r = _eqc.req; if (!r) return;
+    var pub = r.frontendUrl || '', late = r.openLoans.filter(function (l) { return l.overdue; }).length;
+    var h = '<div class="eqc-metrics"><div class="eqc-m' + (r.pending.length ? ' is-warn' : '') + '"><small>คำขอรออนุมัติ</small><b>' + r.pending.length + '</b></div>' +
+      '<div class="eqc-m"><small>กำลังถูกยืม</small><b>' + r.openLoans.length + '</b></div>' +
+      '<div class="eqc-m' + (late ? ' is-warn' : '') + '"><small>เกินกำหนดคืน</small><b>' + late + '</b></div></div>';
+    h += '<p class="eqc-hint rq-link">ลิงก์หน้าขอยืมสำหรับผู้ใช้ทั่วไป (ไม่ต้องล็อกอิน): ' + (pub ? '<a href="' + eqcEsc(pub) + '" target="_blank" rel="noopener">' + eqcEsc(pub) + '</a> <button type="button" class="eqc-btn" data-rq="copy" data-url="' + eqcEsc(pub) + '">คัดลอก</button>' : 'ยังไม่ได้ตั้ง FRONTEND_URL') + '</p>';
+    h += '<div class="rq-t">คำขอรออนุมัติ (' + r.pending.length + ')</div>';
+    h += r.pending.length ? r.pending.map(function (q) {
+      return '<div class="rq-card" data-id="' + eqcEsc(q.reqId) + '"><div class="rq-top"><b>' + eqcEsc(q.assetNo || q.assetId) + ' · ' + eqcEsc(q.assetName) + '</b><span class="eqc-b mid">รออนุมัติ</span></div>' +
+        '<div class="rq-sub">ผู้ขอ <b>' + eqcEsc(q.requesterName) + '</b> · โทร <a href="tel:' + eqcEsc(q.phone) + '">' + eqcEsc(q.phone) + '</a> · ส่งเมื่อ ' + eqcTh(q.createdAt) + '</div>' +
+        '<div class="rq-sub">ต้องการใช้ ' + eqcTh(q.neededFrom) + ' → คืน ' + eqcTh(q.neededTo) + (q.purpose ? ' · ' + eqcEsc(q.purpose) : '') + '</div>' +
+        '<div class="rq-acts"><select data-rq="bt" aria-label="ประเภทผู้ยืม">' + r.borrowerTypes.map(function (t, i) { return '<option' + (i === 1 ? ' selected' : '') + '>' + eqcEsc(t) + '</option>'; }).join('') + '</select>' +
+        '<input type="text" data-rq="note" maxlength="200" placeholder="หมายเหตุ (ถ้ามี)" aria-label="หมายเหตุ">' +
+        '<button type="button" class="eqc-btn is-primary" data-rq="ok">อนุมัติ → บันทึกการยืม</button><button type="button" class="eqc-btn" data-rq="no">ปฏิเสธ</button></div></div>';
+    }).join('') : '<div class="eqc-empty"><b>ไม่มีคำขอที่รออนุมัติ</b>เมื่อมีผู้ใช้ส่งคำขอจากหน้าเว็บ จะแสดงที่นี่</div>';
+    h += '<div class="rq-t">กำลังยืมอยู่ — รับคืน (' + r.openLoans.length + ')</div>';
+    h += r.openLoans.length ? r.openLoans.map(function (l) {
+      var tag = l.overdue ? '<span class="eqc-b bad">เกินกำหนด ' + l.daysLate + ' วัน</span>' : '<span class="eqc-b mid">คืนใน ' + (l.daysLeft == null ? '-' : l.daysLeft) + ' วัน</span>';
+      return '<div class="rq-card" data-loan="' + eqcEsc(l.loanId) + '"><div class="rq-top"><b>' + eqcEsc(l.assetNo || l.assetId) + ' · ' + eqcEsc(l.assetName) + '</b>' + tag + '</div>' +
+        '<div class="rq-sub">ผู้ยืม <b>' + eqcEsc(l.borrowerName) + '</b>' + (l.phone ? ' · โทร <a href="tel:' + eqcEsc(l.phone) + '">' + eqcEsc(l.phone) + '</a>' : '') + ' · ยืม ' + eqcTh(l.loanDate) + ' → กำหนดคืน ' + eqcTh(l.dueDate) + '</div>' +
+        '<div class="rq-acts"><select data-rq="dmg" aria-label="สภาพเมื่อรับคืน"><option value="">สภาพปกติ</option><option value="1">พบความเสียหาย</option></select>' +
+        '<input type="text" data-rq="cond" maxlength="200" placeholder="รายละเอียดความเสียหาย (ถ้ามี)" aria-label="รายละเอียดความเสียหาย">' +
+        '<button type="button" class="eqc-btn is-primary" data-rq="ret">บันทึกรับคืน</button></div></div>';
+    }).join('') : '<div class="eqc-empty">ไม่มีรายการค้างคืน</div>';
+    h += '<div class="rq-t">คำขอที่ดำเนินการแล้วล่าสุด</div>';
+    h += r.decided.length ? '<div class="eqc-logbody">' + r.decided.map(function (q) {
+      return '<div class="eqc-logrow"><time>' + eqcTh(q.decidedAt || q.createdAt) + '</time><span>' + eqcEsc(q.reqId) + ' · ' + eqcEsc(q.assetName) + ' · ' + eqcEsc(q.requesterName) + ' — <b>' + eqcEsc(q.status) + '</b>' + (q.decidedBy ? ' โดย ' + eqcEsc(q.decidedBy) : '') + (q.decisionNote ? ' (' + eqcEsc(q.decisionNote) + ')' : '') + '</span></div>';
+    }).join('') + '</div>' : '<div class="eqc-empty">ยังไม่มีประวัติ</div>';
+    el.innerHTML = h;
+    if (!el._rqBound) { el._rqBound = true; el.addEventListener('click', eqcReqClick); }
+  }
+  function eqcReqClick(e) {
+    var b = e.target.closest('[data-rq]'); if (!b) return; var k = b.getAttribute('data-rq'), card = b.closest('.rq-card');
+    function q(n) { var x = card && card.querySelector('[data-rq="' + n + '"]'); return x ? x.value : ''; }
+    function done(msg) { return function () { eqcToast(msg); _eqc.items = null; eqcReqLoad(); eqcLoad(); }; }
+    function fail() { b.disabled = false; }
+    if (k === 'copy') { var u = b.getAttribute('data-url'); try { navigator.clipboard.writeText(u); eqcToast('คัดลอกลิงก์แล้ว'); } catch (x) { window.prompt('คัดลอกลิงก์', u); } return; }
+    if (k !== 'ok' && k !== 'no' && k !== 'ret') return;
+    var by = eqcReqBy(); if (!by) { eqcToast('ต้องระบุชื่อผู้ทำรายการ', true); return; }
+    if (k === 'ok') { b.disabled = true; eqcRun('lcReqDecide', [card.getAttribute('data-id'), 'approve', q('note'), by, q('bt')], done('อนุมัติแล้ว — บันทึกรายการยืมเรียบร้อย'), fail); }
+    else if (k === 'no') { if (!window.confirm('ปฏิเสธคำขอนี้?')) return; b.disabled = true; eqcRun('lcReqDecide', [card.getAttribute('data-id'), 'reject', q('note'), by, ''], done('ปฏิเสธคำขอแล้ว'), fail); }
+    else { var dmg = q('dmg') === '1', cond = q('cond').trim(); if (dmg && !cond) { eqcToast('กรุณาระบุความเสียหายที่พบ', true); return; }
+      b.disabled = true; eqcRun('lcAdminReturn', [card.getAttribute('data-loan'), dmg, cond, by], done('บันทึกรับคืนแล้ว'), fail); }
+  }
+
   function eqcInit() {
     if (!_eqc.bound) {
       _eqc.bound = true;
@@ -3416,8 +3493,8 @@ html{-webkit-text-size-adjust:100%}
       document.querySelector('.eqc-tabs').addEventListener('click', function (e) {
         var b = e.target.closest('[data-tab]'); if (!b) return; _eqc.tab = b.getAttribute('data-tab');
         document.querySelectorAll('.eqc-tab').forEach(function (t) { var on = t === b; t.classList.toggle('is-on', on); t.setAttribute('aria-selected', on ? 'true' : 'false'); });
-        ['reg', 'loan', 'log'].forEach(function (k) { document.getElementById('eqc-' + k).hidden = (k !== _eqc.tab); });
-        if (_eqc.tab === 'log') eqcLoadLog(); else eqcRender();
+        ['reg', 'loan', 'req', 'log'].forEach(function (k) { document.getElementById('eqc-' + k).hidden = (k !== _eqc.tab); });
+        if (_eqc.tab === 'log') eqcLoadLog(); else if (_eqc.tab === 'req') eqcReqLoad(); else eqcRender();
       });
       document.getElementById('eqc-list').addEventListener('click', function (e) { var r = e.target.closest('[data-id]'); if (r) eqcOpen(r.getAttribute('data-id')); });
     }
@@ -3431,11 +3508,11 @@ html{-webkit-text-size-adjust:100%}
     }, function () { _eqc.loading = false; document.getElementById('eqc-list').innerHTML = '<div class="eqc-empty"><b>โหลดข้อมูลไม่สำเร็จ</b>ตรวจสอบการเชื่อมต่อ แล้วเปิดหน้านี้ใหม่อีกครั้ง</div>'; });
   }
   function eqcAfterLoad() {
-    var a = document.getElementById('eqc-open-lc'), u = eqcLcUrl('');
+    var a = document.getElementById('eqc-open-lc'), u = eqcLcUrl('staff.html');
     if (a) { if (u) { a.href = u; a.style.display = ''; } else a.style.display = 'none'; }
     var b = document.getElementById('eqc-loan-badge'), ov = _eqc.ov;
     if (b) { var n = ov ? (ov.dashboard.overdue || 0) : 0; b.hidden = !n; b.textContent = n ? 'เกินกำหนด ' + n : ''; }
-    eqcRender();
+    eqcRender(); eqcReqBadge();
     if (_eqc.pendingOpen) { var pid = _eqc.pendingOpen; _eqc.pendingOpen = ''; if (eqcFind(pid)) eqcOpen(pid); else eqcToast('ไม่พบครุภัณฑ์รหัส ' + pid, true); }
   }
   function eqcFiltered() {
@@ -3449,7 +3526,7 @@ html{-webkit-text-size-adjust:100%}
   function eqcRender() {
     var all = _eqc.items || [];
     if (_eqc.tab === 'loan') return eqcRenderLoan();
-    if (_eqc.tab === 'log') return;
+    if (_eqc.tab === 'log' || _eqc.tab === 'req') return;
     var live = all.filter(function (x) { return x.status !== 'จำหน่ายแล้ว'; });
     var value = live.reduce(function (a, x) { return a + (Number(x.unitPrice) || 0); }, 0);
     var watch = live.filter(function (x) { var d = eqcDays(x.calibDue); return x.status === 'ชำรุด / รอซ่อม' || x.status === 'ส่งซ่อม' || (d !== null && d <= 30); }).length;
@@ -3475,7 +3552,7 @@ html{-webkit-text-size-adjust:100%}
   function eqcRenderLoan() {
     var el = document.getElementById('eqc-loan'), ov = _eqc.ov;
     if (!ov) { el.innerHTML = '<div class="eqc-empty"><b>โหลดข้อมูลการยืม-คืนไม่สำเร็จ</b>ตรวจสอบว่าวางไฟล์ LoanCenter.gs ในโปรเจกต์แล้ว และ Deploy เวอร์ชันใหม่</div>'; return; }
-    var d = ov.dashboard, lc = eqcLcUrl('#/loans');
+    var d = ov.dashboard, lc = eqcLcUrl('staff.html#/loans');
     function loanRow(l, done) {
       var late = l.overdue, tag = done ? '<span class="eqc-b ok">คืนแล้ว ' + eqcTh(l.returnDate) + '</span>' : (late ? '<span class="eqc-b bad">เกินกำหนด ' + l.daysLate + ' วัน</span>' : '<span class="eqc-b mid">คืนใน ' + (l.daysLeft == null ? '-' : l.daysLeft) + ' วัน</span>');
       return '<div class="eqc-row" style="cursor:default"><span class="eqc-th"><span class="material-icons-outlined" aria-hidden="true">swap_horiz</span></span>' +
@@ -3532,7 +3609,7 @@ html{-webkit-text-size-adjust:100%}
         (eqcSt(x.assetId) && eqcSt(x.assetId).loan ? '<p class="eqc-hint" style="margin:8px 0">ผู้ยืม <b>' + eqcEsc(eqcSt(x.assetId).loan.borrowerName) + '</b> · ยืมเมื่อ ' + eqcTh(eqcSt(x.assetId).loan.loanDate) + ' · กำหนดคืน ' + eqcTh(eqcSt(x.assetId).loan.dueDate) + '</p>' : '') +
         '<div class="eqm-gal" id="eqm-gal"></div><div id="eqm-qr"></div><dl class="eqm-dl">' + dl + '</dl>' +
         '<div class="eqm-sec">ประวัติการบันทึก</div><ul class="eqm-log" id="eqm-log"><li>กำลังโหลด…</li></ul>' +
-        '<div class="eqm-act">' + (eqcLcUrl('#/asset/' + x.assetId) ? '<a class="eqc-btn is-primary" style="text-decoration:none" target="_blank" rel="noopener" href="' + eqcEsc(eqcLcUrl('#/asset/' + x.assetId)) + '"><span class="material-icons-outlined" aria-hidden="true">open_in_new</span>เปิดในศูนย์ยืม-คืน</a>' : '') +
+        '<div class="eqm-act">' + (eqcLcUrl('staff.html#/asset/' + x.assetId) ? '<a class="eqc-btn is-primary" style="text-decoration:none" target="_blank" rel="noopener" href="' + eqcEsc(eqcLcUrl('staff.html#/asset/' + x.assetId)) + '"><span class="material-icons-outlined" aria-hidden="true">open_in_new</span>เปิดในศูนย์ยืม-คืน</a>' : '') +
         '<button type="button" class="eqc-btn" onclick="eqcPrintCard(\'' + eqcEsc(x.assetId) + '\')"><span class="material-icons-outlined" aria-hidden="true">print</span>พิมพ์บัตรครุภัณฑ์</button>' +
         '</div></div>',
       didOpen: function () { eqcOpenLoad(id); eqcQrPanel(id); }

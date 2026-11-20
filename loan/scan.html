@@ -3,24 +3,25 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0d6b58">
+<meta name="theme-color" content="#1967D2">
 <meta name="robots" content="noindex">
 <title>ข้อมูลครุภัณฑ์</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@400;600;700&family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <style>
   body{padding:max(16px,env(safe-area-inset-top)) 16px max(16px,env(safe-area-inset-bottom))}
-  main{max-width:520px;margin:0 auto;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px;box-shadow:var(--shadow)}
-  .no{margin:0 0 2px;font-weight:700;color:var(--accent)}
+  main{max-width:520px;margin:0 auto;padding:22px}
+  .no{margin:0 0 2px;font-weight:700;color:var(--link)}
   main h1{margin-bottom:10px;overflow-wrap:anywhere}
   .st{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
   .thumb{float:right;width:84px;height:84px;margin:0 0 8px 12px;border-radius:10px;object-fit:cover;border:1px solid var(--line)}
   .big{margin-top:16px;padding:14px 16px;border-radius:12px;font-weight:600}
-  .big.ok{background:var(--ok-soft);color:var(--ok)}.big.acc{background:var(--accent-soft);color:var(--accent)}.big.bad{background:var(--bad-soft);color:var(--bad)}.big.off{background:var(--off-soft);color:var(--off)}
+  .big.ok{background:var(--ok-soft);color:var(--ok)}.big.acc{background:var(--accent-soft);color:var(--link)}.big.bad{background:var(--bad-soft);color:var(--bad)}.big.off{background:var(--off-soft);color:var(--off)}
   .cta{display:flex;margin-top:20px;width:100%}
-  .foot{max-width:520px;margin:12px auto 0;text-align:center;font-size:.8125rem;color:var(--ink2)}
+  .foot{max-width:520px;margin:12px auto 0;text-align:center;font-size:.875rem}
+  .cta+.cta{margin-top:8px}
 </style>
 </head>
 <body>
@@ -45,11 +46,12 @@
     var rows = [['หมวด', a.category], ['สถานที่ตั้ง', a.location], ['ผู้รับผิดชอบ', a.custodian],
       ['ตรวจสภาพล่าสุด', a.lastCheckAt ? fd(a.lastCheckAt) + (a.lastCheckResult ? ' · ' + a.lastCheckResult : '') : 'ยังไม่เคยบันทึก'],
       ['ตรวจครั้งถัดไป', a.nextCheckDue ? fd(a.nextCheckDue) + (a.checkDue ? ' (ถึงกำหนดแล้ว)' : '') : '']].filter(function (r) { return r[1]; });
-    var staff = window.ELC_API.session(), link = 'index.html#/asset/' + encodeURIComponent(a.assetId);
+    var staff = window.ELC_API.session(), link = 'staff.html#/asset/' + encodeURIComponent(a.assetId);
     m.innerHTML = (a.thumb ? '<img class="thumb" src="' + esc(a.thumb) + '" alt="">' : '') + '<p class="no">' + (a.assetNo ? 'เลขครุภัณฑ์ ' + esc(a.assetNo) : 'ยังไม่มีเลขครุภัณฑ์') + '</p><h1>' + esc(a.name) + '</h1>' +
       '<div class="st"><span class="badge ' + cls + '">' + esc(a.status) + '</span></div>' + (ln ? '<div class="big ' + ln[0] + '">' + esc(ln[1]) + '</div>' : '') +
       '<dl class="kv" style="margin-top:14px">' + rows.map(function (r) { return '<dt>' + esc(r[0]) + '</dt><dd>' + esc(r[1]) + '</dd>'; }).join('') + '</dl>' +
-      '<a class="btn pri cta" href="' + esc(link) + '">' + (staff ? 'เปิดในระบบ — ให้ยืม / รับคืน / ตรวจสภาพ' : 'ผู้ดูแล: เข้าสู่ระบบเพื่อทำรายการ') + '</a>';
+      (a.loanState === 'available' || a.loanState === 'onLoan' ? '<a class="btn pri cta" href="index.html?asset=' + encodeURIComponent(a.assetId) + '">ขอยืมอุปกรณ์นี้</a>' : '') +
+      '<a class="btn' + (staff ? ' pri' : '') + ' cta" href="' + esc(link) + '">' + (staff ? 'เปิดในระบบ — ให้ยืม / รับคืน / ตรวจสภาพ' : 'สำหรับผู้ดูแล: เข้าสู่ระบบ') + '</a>';
     document.title = (a.assetNo || a.name) + ' · ข้อมูลครุภัณฑ์';
   }).catch(function (e) { m.innerHTML = '<h1>เปิดข้อมูลไม่สำเร็จ</h1><p class="hint" style="margin-top:8px">' + esc(e.message) + '</p><button class="btn cta" onclick="location.reload()">ลองใหม่</button>'; });
 })();

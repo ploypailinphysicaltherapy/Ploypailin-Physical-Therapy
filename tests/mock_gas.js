@@ -6,7 +6,7 @@ function mkSheet(name){const s={name,data:[[]],maxC:26,imgs:{},
  getLastRow(){let l=0;this.data.forEach((r,i)=>{if(r&&r.some(v=>v!==''&&v!=null))l=i+1});return l},
  getMaxColumns(){return this.maxC},insertColumnsAfter(a,n){this.maxC+=n},setFrozenRows(){},setRowHeight(){},setColumnWidth(){},
  getRange(r,c,nr=1,nc=1){const sh=this;if(strict&&c+nc-1>sh.maxC)throw new Error('outside grid '+name);
-  return{getValues(){const o=[];for(let i=0;i<nr;i++){const row=[];for(let j=0;j<nc;j++){const v=(sh.data[r-1+i]||[])[c-1+j];row.push(v==null?'':v)}o.push(row)}return o},
+  return{getDisplayValues(){return this.getValues().map(r=>r.map(String))},getValues(){const o=[];for(let i=0;i<nr;i++){const row=[];for(let j=0;j<nc;j++){const v=(sh.data[r-1+i]||[])[c-1+j];row.push(v==null?'':v)}o.push(row)}return o},
   setValues(v){for(let i=0;i<nr;i++){sh.data[r-1+i]=sh.data[r-1+i]||[];for(let j=0;j<nc;j++)sh.data[r-1+i][c-1+j]=v[i][j]}return this},
   setValue(v){sh.data[r-1]=sh.data[r-1]||[];sh.data[r-1][c-1]=(v&&v.__img)?'':v;if(v&&v.__img)sh.imgs[r+','+c]=v;return this},
   setFormula(f){sh.data[r-1]=sh.data[r-1]||[];sh.data[r-1][c-1]=f;return this},setNumberFormat(){return this},setNumberFormats(){return this},setFontWeight(){return this}}}};return s}
@@ -34,5 +34,5 @@ const T=(n,f)=>{try{const v=f();pass++;console.log('PASS',n,v===undefined?'':v)}
 const ok=(r,m)=>{if(!r.ok)throw new Error((m||'')+' '+r.code+': '+r.error);return r.data};
 const err=(r,code)=>{if(r.ok)throw new Error('expected error '+code);if(code&&r.code!==code)throw new Error('code '+r.code+' != '+code+' ('+r.error+')');return r.error};
 
-const salt='salt-1';props.LC_PIN_SALT=salt;props.LC_STAFF_PIN_HASH=run(`lc_hashPin_('staff-123',${JSON.stringify(salt)})`);props.LC_ADMIN_PIN_HASH=run(`lc_hashPin_('admin-456',${JSON.stringify(salt)})`);props.LC_FRONTEND_URL='https://org.github.io/elc/';
+const salt='salt-1';props.LC_PIN_SALT=salt;props.LC_ADMIN_PIN_HASH=run(`lc_hashPin_('admin-456',${JSON.stringify(salt)})`);props.LC_FRONTEND_URL='https://org.github.io/elc/';
 module.exports={call,run,sheets,files,props,ctx};

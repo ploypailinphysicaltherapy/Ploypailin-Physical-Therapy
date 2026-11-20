@@ -19,7 +19,7 @@
  */
 
 
-const LC_APP_VERSION = '1.0.0';
+const LC_APP_VERSION = '1.2.0';
 const LC_SCHEMA_VER = '1';
 const LC_SESSION_TTL = 21600;          // วินาที (สูงสุดของ CacheService = 6 ชม.)
 const LC_LOGIN_MAX_FAIL = 5;           // ใส่ PIN ผิดครบนี้ → ล็อกการเข้าสู่ระบบชั่วคราว
@@ -157,14 +157,12 @@ function lc_safeEq_(a, b) {
 /**
  * ✏️ ตั้งค่าครั้งแรก — แก้ค่าด้านล่าง แล้วกด Run lcSetConfig ครั้งเดียว (เสร็จแล้วลบ PIN ออกจากโค้ดทันที)
  *   FRONTEND_URL : ลิงก์หน้าเว็บศูนย์ยืม-คืนบน GitHub Pages (ลงท้ายด้วย /) — ใช้เป็นปลายทางของ QR
- *   STAFF_PIN    : รหัสเจ้าหน้าที่ (อย่างน้อย 6 ตัว) — ยืม/คืน ตรวจสภาพ เพิ่ม/แก้ครุภัณฑ์ พิมพ์ QR
- *   ADMIN_PIN    : รหัสผู้ดูแล (อย่างน้อย 6 ตัว ต้องต่างจากของเจ้าหน้าที่) — ยกเลิกรายการ สร้าง QR ซ้ำทั้งหมด
+ *   ADMIN_PIN    : รหัสผู้ดูแล (อย่างน้อย 6 ตัว) — มีสิทธิ์เดียว ทำได้ทุกอย่าง: ยืม/คืน ตรวจสภาพ เพิ่ม/แก้ครุภัณฑ์ พิมพ์ QR ยกเลิกรายการ
  * ชีตที่ใช้คือ SPREADSHEET_ID เดียวกับ Code.gs (PT Station) — ไม่ต้องตั้งซ้ำ
  */
 function lcSetConfig() {
   const CFG = {
     FRONTEND_URL: 'https://ploypailinphysicaltherapy.github.io/Ploypailin-Physical-Therapy/loan/',
-    STAFF_PIN: '',
     ADMIN_PIN: ''
   };
   const p = PropertiesService.getScriptProperties();
@@ -174,15 +172,14 @@ function lcSetConfig() {
     if (u.slice(-1) !== '/') u += '/';
     p.setProperty('LC_FRONTEND_URL', u);
   }
-  if (CFG.STAFF_PIN || CFG.ADMIN_PIN) {
-    if (String(CFG.STAFF_PIN).length < 6 || String(CFG.ADMIN_PIN).length < 6) throw new Error('PIN ต้องมีอย่างน้อย 6 ตัวอักษร (ทั้งของเจ้าหน้าที่และผู้ดูแล)');
-    if (CFG.STAFF_PIN === CFG.ADMIN_PIN) throw new Error('PIN ของเจ้าหน้าที่และผู้ดูแลต้องไม่ซ้ำกัน');
+  if (CFG.ADMIN_PIN) {
+    if (String(CFG.ADMIN_PIN).length < 6) throw new Error('PIN ต้องมีอย่างน้อย 6 ตัวอักษร');
     const salt = Utilities.getUuid();
     p.setProperty('LC_PIN_SALT', salt);
-    p.setProperty('LC_STAFF_PIN_HASH', lc_hashPin_(String(CFG.STAFF_PIN), salt));
     p.setProperty('LC_ADMIN_PIN_HASH', lc_hashPin_(String(CFG.ADMIN_PIN), salt));
+    p.deleteProperty('LC_STAFF_PIN_HASH');   // เลิกใช้รหัสเจ้าหน้าที่ (ถ้าเคยตั้งไว้)
   }
-  Logger.log('บันทึกการตั้งค่าแล้ว — ลบ STAFF_PIN / ADMIN_PIN ออกจากโค้ดได้เลย แล้วรัน lcSetupLoanCenter()');
+  Logger.log('บันทึกการตั้งค่าแล้ว — ลบ ADMIN_PIN ออกจากโค้ดได้เลย แล้วรัน lcSetupLoanCenter()');
 }
 
 function lcSetupLoanCenter() {
@@ -191,7 +188,7 @@ function lcSetupLoanCenter() {
     spreadsheet: lc_ss_().getName(),
     sheets: ['AssetRegister', 'AssetLog', 'AssetLoans', 'AssetChecks'],
     frontendUrl: lc_prop_('LC_FRONTEND_URL') || '(ยังไม่ตั้ง — รัน lcSetConfig)',
-    pinsSet: !!(lc_prop_('LC_STAFF_PIN_HASH') && lc_prop_('LC_ADMIN_PIN_HASH')),
+    pinsSet: !!lc_prop_('LC_ADMIN_PIN_HASH'),
     assets: Math.max(0, S.reg.getLastRow() - 1)
   };
   if (rep.frontendUrl.charAt(0) === '(') Logger.log('⚠ ยังไม่ได้ตั้ง FRONTEND_URL');
@@ -213,11 +210,11 @@ function lc_apiLogin_(a) {
   if (fails >= LC_LOGIN_MAX_FAIL) throw new LcApiError('LOCKED', 'ใส่รหัสผิดหลายครั้ง ระบบล็อกการเข้าสู่ระบบชั่วคราว 10 นาที');
   const name = lc_txt_(a.name, 60), pin = String(a.pin == null ? '' : a.pin);
   if (name.length < 2) throw lc_bad_('กรุณากรอกชื่อผู้ใช้งาน (อย่างน้อย 2 ตัวอักษร)');
-  const salt = lc_prop_('LC_PIN_SALT'), sh = lc_prop_('LC_STAFF_PIN_HASH'), ah = lc_prop_('LC_ADMIN_PIN_HASH');
-  if (!salt || !sh) throw new LcApiError('CONFIG', 'ระบบยังไม่ได้ตั้งรหัสผ่าน — ผู้ดูแลต้องรัน lcSetConfig() ใน Apps Script');
+  const salt = lc_prop_('LC_PIN_SALT'), ah = lc_prop_('LC_ADMIN_PIN_HASH');
+  if (!salt || !ah) throw new LcApiError('CONFIG', 'ระบบยังไม่ได้ตั้งรหัสผ่าน — ผู้ดูแลต้องรัน lcSetConfig() ใน Apps Script');
   const h = lc_hashPin_(pin, salt);
   let role = '';
-  if (ah && lc_safeEq_(h, ah)) role = 'admin'; else if (lc_safeEq_(h, sh)) role = 'staff';
+  if (ah && lc_safeEq_(h, ah)) role = 'admin';
   if (!role) { cache.put('LC_LOGIN_FAILS', String(fails + 1), LC_LOGIN_LOCK_SEC); throw new LcApiError('AUTH', 'รหัสผ่านไม่ถูกต้อง'); }
   cache.remove('LC_LOGIN_FAILS');
   const token = Utilities.getUuid().replace(/-/g, '') + Utilities.getUuid().replace(/-/g, '');
@@ -240,28 +237,31 @@ function lc_apiLogout_(a, s) { CacheService.getScriptCache().remove('LC_S_' + s.
 //  ตัวรับคำขอ
 // ================================================================
 const LC_ROUTES = {
-  ping:        { role: '',      fn: function () { return { name: 'Equipment Loan Center', version: LC_APP_VERSION, time: lc_nowStr_(), configured: { frontend: !!lc_prop_('LC_FRONTEND_URL'), pins: !!lc_prop_('LC_STAFF_PIN_HASH') } }; } },
+  ping:        { role: '',      fn: function () { return { name: 'Equipment Loan Center', version: LC_APP_VERSION, time: lc_nowStr_(), configured: { frontend: !!lc_prop_('LC_FRONTEND_URL'), pins: !!lc_prop_('LC_ADMIN_PIN_HASH') } }; } },
   login:       { role: '',      fn: lc_apiLogin_ },
   scan:        { role: '',      fn: lc_apiScan_ },
-  logout:      { role: 'staff', fn: lc_apiLogout_ },
-  me:          { role: 'staff', fn: function (a, s) { return { name: s.name, role: s.role }; } },
-  config:      { role: 'staff', fn: lc_apiConfig_ },
-  dashboard:   { role: 'staff', fn: lc_apiDashboard_ },
-  assetList:   { role: 'staff', fn: lc_apiAssetList_ },
-  assetGet:    { role: 'staff', fn: lc_apiAssetGet_ },
-  assetSave:   { role: 'staff', fn: lc_apiAssetSave_ },
-  assetAddPhoto:    { role: 'staff', fn: lc_apiAddPhoto_ },
-  assetGetPhoto:    { role: 'staff', fn: lc_apiGetPhoto_ },
-  assetRemovePhoto: { role: 'staff', fn: lc_apiRemovePhoto_ },
-  assetQrBatch:     { role: 'staff', fn: lc_apiQrBatch_ },
-  assetQrPrintLog:  { role: 'staff', fn: lc_apiQrPrintLog_ },
-  assetCheckSave:   { role: 'staff', fn: lc_apiCheckSave_ },
-  assetCheckList:   { role: 'staff', fn: lc_apiCheckList_ },
-  assetLogList:     { role: 'staff', fn: lc_apiLogList_ },
-  loanList:      { role: 'staff', fn: lc_apiLoanList_ },
-  loanCheckout:  { role: 'staff', fn: lc_apiLoanCheckout_ },
-  loanReturn:    { role: 'staff', fn: lc_apiLoanReturn_ },
-  loanExtend:    { role: 'staff', fn: lc_apiLoanExtend_ },
+  requestCatalog: { role: '',   fn: lc_apiReqCatalog_ },
+  requestCreate:  { role: '',   fn: lc_apiReqCreate_ },
+  requestStatus:  { role: '',   fn: lc_apiReqStatus_ },
+  logout:      { role: 'admin', fn: lc_apiLogout_ },
+  me:          { role: 'admin', fn: function (a, s) { return { name: s.name, role: s.role }; } },
+  config:      { role: 'admin', fn: lc_apiConfig_ },
+  dashboard:   { role: 'admin', fn: lc_apiDashboard_ },
+  assetList:   { role: 'admin', fn: lc_apiAssetList_ },
+  assetGet:    { role: 'admin', fn: lc_apiAssetGet_ },
+  assetSave:   { role: 'admin', fn: lc_apiAssetSave_ },
+  assetAddPhoto:    { role: 'admin', fn: lc_apiAddPhoto_ },
+  assetGetPhoto:    { role: 'admin', fn: lc_apiGetPhoto_ },
+  assetRemovePhoto: { role: 'admin', fn: lc_apiRemovePhoto_ },
+  assetQrBatch:     { role: 'admin', fn: lc_apiQrBatch_ },
+  assetQrPrintLog:  { role: 'admin', fn: lc_apiQrPrintLog_ },
+  assetCheckSave:   { role: 'admin', fn: lc_apiCheckSave_ },
+  assetCheckList:   { role: 'admin', fn: lc_apiCheckList_ },
+  assetLogList:     { role: 'admin', fn: lc_apiLogList_ },
+  loanList:      { role: 'admin', fn: lc_apiLoanList_ },
+  loanCheckout:  { role: 'admin', fn: lc_apiLoanCheckout_ },
+  loanReturn:    { role: 'admin', fn: lc_apiLoanReturn_ },
+  loanExtend:    { role: 'admin', fn: lc_apiLoanExtend_ },
   assetVoid:     { role: 'admin', fn: lc_apiAssetVoid_ }
 };
 function lc_handle_(req) {
@@ -895,4 +895,145 @@ function lcAdminOverview() {
     logs: lc_apiLogList_({ limit: 80 }),
     frontendUrl: lc_prop_('LC_FRONTEND_URL') || ''
   };
+}
+
+
+// ================================================================
+//  คำขอยืม (ผู้ใช้ทั่วไป — ไม่ต้องล็อกอิน)  v1.2
+//  · action สาธารณะ: requestCatalog / requestCreate / requestStatus (ไม่เปิดเผยข้อมูลผู้ยืมคนอื่น)
+//  · ผู้ดูแลอนุมัติ/ปฏิเสธ/รับคืนที่ระบบแอดมิน (index.html → ศูนย์ควบคุมอุปกรณ์ → แท็บ "คำขอยืม")
+//    ผ่าน lcReqList / lcReqDecide / lcAdminReturn — อนุมัติแล้วระบบสร้างรายการยืมจริงลงชีต AssetLoans อัตโนมัติ
+// ================================================================
+const LC_REQ_HEADERS = ['reqId','assetId','assetNo','assetName','requesterName','phone','neededFrom','neededTo','purpose','status','createdAt','decidedAt','decidedBy','decisionNote','loanId'];
+const LC_REQ_PENDING = 'รออนุมัติ';
+const LC_REQ_BUSY = 'กำลังดำเนินการ';
+const LC_REQ_OK = 'อนุมัติแล้ว';
+const LC_REQ_NO = 'ปฏิเสธ';
+const LC_REQ_MAX_PENDING_PER_PHONE = 3;
+const LC_REQ_MAX_PER_HOUR = 60;
+
+function lc_reqSheet_() { return lc_ensureSheet_(lc_ss_(), 'AssetRequests', LC_REQ_HEADERS); }
+function lc_reqIx_() { const o = {}; LC_REQ_HEADERS.forEach(function (h, i) { o[h] = i; }); return o; }
+function lc_reqRead_() {
+  const sh = lc_reqSheet_(), last = sh.getLastRow();
+  if (last < 2) return [];
+  return sh.getRange(2, 1, last - 1, LC_REQ_HEADERS.length).getDisplayValues().map(function (r, i) {
+    const o = { rowNo: i + 2 }; LC_REQ_HEADERS.forEach(function (h, k) { o[h] = String(r[k]); }); return o;
+  });
+}
+function lc_reqSet_(rowNo, patch) {
+  const sh = lc_reqSheet_(), X = lc_reqIx_();
+  Object.keys(patch).forEach(function (k) { sh.getRange(rowNo, X[k] + 1).setNumberFormat('@').setValue(patch[k]); });
+}
+function lc_digits_(v) { return String(v == null ? '' : v).replace(/\D/g, ''); }
+
+/** รายการที่เปิดให้ยืม (ข้อมูลสาธารณะ: ไม่มีราคา/Serial/ชื่อผู้ยืม) */
+function lc_apiReqCatalog_() {
+  const S = lc_sheets_(), today = lc_today_(), open = lc_openLoanMap_(lc_readLoans_(S.loan), today);
+  const pend = {}; lc_reqRead_().forEach(function (r) { if (r.status === LC_REQ_PENDING) pend[r.assetId] = (pend[r.assetId] || 0) + 1; });
+  const items = lc_liveAssets_(S).filter(function (o) { return o.loanable === 'Y' && o.status !== LC_STATUSES[4]; }).map(function (o) {
+    const l = open[o.assetId];
+    return {
+      assetId: o.assetId, assetNo: o.assetNo, name: o.name, category: o.category, location: o.location, thumb: o.thumb || '',
+      state: l ? (l.overdue ? 'overdue' : 'onLoan') : (o.status === LC_STATUSES[0] ? 'available' : 'unavailable'),
+      dueDate: l ? l.dueDate : '', pending: pend[o.assetId] || 0
+    };
+  });
+  return { items: items, today: today, defaultLoanDays: LC_DEFAULT_LOAN_DAYS, maxLoanDays: LC_MAX_LOAN_DAYS };
+}
+
+function lc_apiReqCreate_(d) {
+  if (d.website) return { reqId: '-', assetName: '' };                     // ช่องล่อบอท
+  const first = lc_txt_(d.firstName, 60), last = lc_txt_(d.lastName, 60);
+  if (first.length < 2) throw lc_bad_('กรุณากรอกชื่อ');
+  if (last.length < 2) throw lc_bad_('กรุณากรอกนามสกุล');
+  const phone = lc_digits_(d.phone);
+  if (!/^0\d{8,9}$/.test(phone)) throw lc_bad_('เบอร์โทรไม่ถูกต้อง (เช่น 0812345678)');
+  const today = lc_today_(), from = lc_date_(d.from) || today, to = lc_date_(d.to);
+  if (from < today) throw lc_bad_('วันที่ต้องการใช้ต้องไม่เป็นวันที่ผ่านมาแล้ว');
+  if (!to) throw lc_bad_('กรุณาระบุวันที่จะคืน');
+  if (to < from) throw lc_bad_('วันที่คืนต้องไม่ก่อนวันที่เริ่มใช้');
+  if (lc_daysBetween_(from, to) > LC_MAX_LOAN_DAYS) throw lc_bad_('ขอยืมได้ครั้งละไม่เกิน ' + LC_MAX_LOAN_DAYS + ' วัน');
+  const cache = CacheService.getScriptCache(), hk = 'LC_RQ_H_' + Utilities.formatDate(new Date(), TIMEZONE, 'yyyyMMddHH');
+  const hits = Number(cache.get(hk) || 0);
+  if (hits >= LC_REQ_MAX_PER_HOUR) throw new LcApiError('BUSY', 'ระบบรับคำขอจำนวนมากชั่วคราว กรุณาลองใหม่ภายหลัง');
+  cache.put(hk, String(hits + 1), 3700);
+  const S = lc_sheets_();
+  return lc_withLock_(function () {
+    const rows = lc_readAssets_(S.reg), i = lc_findRow_(rows, d.assetId);
+    if (i < 0) throw lc_bad_('ไม่พบรายการอุปกรณ์');
+    const a = lc_rowToAsset_(rows[i]);
+    if (a.voided || a.loanable !== 'Y') throw lc_bad_('รายการนี้ไม่เปิดให้ยืม');
+    if (a.status !== LC_STATUSES[0]) throw lc_bad_('อุปกรณ์นี้ยังไม่พร้อมให้ยืมในขณะนี้');
+    const cur = lc_openLoanMap_(lc_readLoans_(S.loan), today)[a.assetId];
+    if (cur && (cur.overdue || from <= cur.dueDate)) throw lc_bad_(cur.overdue ? 'อุปกรณ์นี้ยังไม่ได้รับคืน กรุณาติดต่อเจ้าหน้าที่' : 'อุปกรณ์ถูกยืมอยู่ถึงวันที่ ' + cur.dueDate + ' กรุณาเลือกวันเริ่มใช้หลังจากนั้น');
+    const reqs = lc_reqRead_();
+    if (reqs.filter(function (r) { return r.status === LC_REQ_PENDING && lc_digits_(r.phone) === phone; }).length >= LC_REQ_MAX_PENDING_PER_PHONE) throw lc_bad_('เบอร์นี้มีคำขอรออนุมัติครบ ' + LC_REQ_MAX_PENDING_PER_PHONE + ' รายการแล้ว กรุณารอเจ้าหน้าที่ติดต่อกลับ');
+    if (reqs.some(function (r) { return r.status === LC_REQ_PENDING && r.assetId === a.assetId && lc_digits_(r.phone) === phone; })) throw lc_bad_('คุณส่งคำขอยืมอุปกรณ์นี้ไว้แล้ว กรุณารอเจ้าหน้าที่ติดต่อกลับ');
+    let maxN = 0; reqs.forEach(function (r) { const m = /^R(\d+)$/.exec(r.reqId); if (m) maxN = Math.max(maxN, Number(m[1])); });
+    const id = 'R' + ('00000' + (maxN + 1)).slice(-5), sh = lc_reqSheet_(), X = lc_reqIx_(), row = LC_REQ_HEADERS.map(function () { return ''; });
+    row[X.reqId] = id; row[X.assetId] = a.assetId; row[X.assetNo] = a.assetNo; row[X.assetName] = a.name;
+    row[X.requesterName] = first + ' ' + last; row[X.phone] = phone; row[X.neededFrom] = from; row[X.neededTo] = to;
+    row[X.purpose] = lc_txt_(d.purpose, 300); row[X.status] = LC_REQ_PENDING; row[X.createdAt] = lc_nowStr_();
+    sh.getRange(sh.getLastRow() + 1, 1, 1, row.length).setNumberFormat('@').setValues([row]);
+    lc_log_(S.log, a.assetId, a.assetNo, 'request_new', first + ' ' + last, { reqId: id, from: from, to: to });
+    return { reqId: id, assetName: a.name, assetNo: a.assetNo, from: from, to: to };
+  });
+}
+
+function lc_apiReqStatus_(d) {
+  const id = String(d.reqId || '').trim().toUpperCase(), phone = lc_digits_(d.phone);
+  const r = lc_reqRead_().filter(function (x) { return x.reqId === id && lc_digits_(x.phone) === phone; })[0];
+  if (!r) throw lc_bad_('ไม่พบคำขอ ตรวจสอบเลขคำขอและเบอร์โทรอีกครั้ง');
+  return { reqId: r.reqId, assetNo: r.assetNo, assetName: r.assetName, status: r.status === LC_REQ_BUSY ? LC_REQ_PENDING : r.status, from: r.neededFrom, to: r.neededTo, decidedAt: r.decidedAt, note: r.decisionNote };
+}
+
+// ---------- ฝั่งแอดมิน (เรียกผ่าน google.script.run จากหน้า index.html) ----------
+function lcReqList() {
+  const S = lc_sheets_(), today = lc_today_(), all = lc_reqRead_();
+  const open = lc_readLoans_(S.loan).filter(function (l) { return l.status === LC_LOAN_OPEN; }).map(function (l) { return lc_decorateLoan_(l, today); });
+  open.sort(function (x, y) { return (y.daysLate - x.daysLate) || String(x.dueDate).localeCompare(String(y.dueDate)); });
+  return {
+    today: today, borrowerTypes: LC_BORROWER_TYPES, frontendUrl: lc_prop_('LC_FRONTEND_URL') || '',
+    pending: all.filter(function (r) { return r.status === LC_REQ_PENDING; }),
+    decided: all.filter(function (r) { return r.status !== LC_REQ_PENDING; }).reverse().slice(0, 30),
+    openLoans: open
+  };
+}
+
+/** decision = 'approve' | 'reject' — อนุมัติ = สร้างรายการยืมจริง (วันที่ยืม = วันนี้, กำหนดคืน = วันที่ผู้ขอระบุ) */
+function lcReqDecide(reqId, decision, note, by, borrowerType) {
+  by = lc_txt_(by, 60); if (by.length < 2) throw lc_bad_('กรุณาระบุชื่อผู้ทำรายการ');
+  note = lc_txt_(note, 300);
+  const S = lc_sheets_(), today = lc_today_();
+  let req = null;
+  lc_withLock_(function () {
+    req = lc_reqRead_().filter(function (r) { return r.reqId === String(reqId); })[0];
+    if (!req) throw lc_bad_('ไม่พบคำขอ');
+    if (req.status !== LC_REQ_PENDING) throw lc_bad_('คำขอนี้ถูกดำเนินการแล้ว (' + req.status + ')');
+    if (decision === 'reject') {
+      lc_reqSet_(req.rowNo, { status: LC_REQ_NO, decidedAt: lc_nowStr_(), decidedBy: by, decisionNote: note });
+      lc_log_(S.log, req.assetId, req.assetNo, 'request_reject', by, { reqId: req.reqId, note: note });
+    } else lc_reqSet_(req.rowNo, { status: LC_REQ_BUSY });
+  });
+  if (decision === 'reject') return { status: LC_REQ_NO };
+  if (decision !== 'approve') throw lc_bad_('คำสั่งไม่ถูกต้อง');
+  try {
+    const due = req.neededTo < today ? today : req.neededTo;
+    const r = lc_apiLoanCheckout_({
+      assetId: req.assetId, borrowerName: req.requesterName, borrowerType: borrowerType || LC_BORROWER_TYPES[1], phone: req.phone,
+      loanDate: today, dueDate: due, note: ('คำขอ ' + req.reqId + (req.purpose ? ' · ' + req.purpose : '') + (note ? ' · ' + note : '')).substring(0, 300)
+    }, { name: by });
+    lc_withLock_(function () { lc_reqSet_(req.rowNo, { status: LC_REQ_OK, decidedAt: lc_nowStr_(), decidedBy: by, decisionNote: note, loanId: r.loanId }); });
+    return { status: LC_REQ_OK, loanId: r.loanId };
+  } catch (err) {
+    lc_withLock_(function () { lc_reqSet_(req.rowNo, { status: LC_REQ_PENDING }); });
+    throw err;
+  }
+}
+
+/** รับคืนจากหน้าแอดมิน */
+function lcAdminReturn(loanId, damaged, conditionIn, by) {
+  by = lc_txt_(by, 60); if (by.length < 2) throw lc_bad_('กรุณาระบุชื่อผู้ทำรายการ');
+  return lc_apiLoanReturn_({ loanId: loanId, damaged: damaged === true, conditionIn: conditionIn }, { name: by });
 }
