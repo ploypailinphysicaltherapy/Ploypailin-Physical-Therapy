@@ -3,49 +3,109 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#1967D2">
+<meta name="theme-color" content="#0E6577">
 <title>ขอยืมอุปกรณ์ · รพ.สต.บางขะแยง</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%231967D2'/%3E%3Cpath d='M9 12h14v10H9zM12 12V9h8v3' stroke='%23fff' stroke-width='2' fill='none'/%3E%3C/svg%3E">
+<meta name="description" content="ขอยืมอุปกรณ์กายภาพบำบัด รพ.สต.บางขะแยง — เลือกอุปกรณ์ กรอกข้อมูล แล้วรอเจ้าหน้าที่โทรกลับ ไม่ต้องสมัครหรือล็อกอิน">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='10' fill='%230E6577'/%3E%3Cpath d='M7 14l9-7 9 7M9 13v11h14V13M13 24v-6h6v6' stroke='%23fff' stroke-width='2' fill='none' stroke-linejoin='round' stroke-linecap='round'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@400;600;700&family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <symbol id="i-box" viewBox="0 0 24 24"><path d="M3 8l9-5 9 5v8l-9 5-9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/></symbol>
   <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></symbol>
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M4 11l8-7 8 7"/><path d="M6 10v10h12V10"/><path d="M10 20v-5h4v5"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a1 1 0 01-1 1A15 15 0 014 5a1 1 0 011-1z"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s6.5-5.6 6.5-11A6.5 6.5 0 005.5 10c0 5.4 6.5 11 6.5 11z"/><circle cx="12" cy="10" r="2.3"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24"><path d="M4 12l16-8-6 16-3-7z"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-doc" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 12h6M9 16h4"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c.8-3.6 3.5-5.5 7-5.5s6.2 1.9 7 5.5"/></symbol>
+  <symbol id="i-hand" viewBox="0 0 24 24"><path d="M4 14l5.5-5.5a2 2 0 012.8 0l.7.7M9 17h3l5-4.5a1.6 1.6 0 00-2.2-2.3L12.5 12M4 14v4M4 17h2"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></symbol>
 </svg>
-<div class="pub" id="pub">
-  <header class="pub-h">
-    <div><h1>ขอยืมอุปกรณ์</h1><p>รพ.สต.บางขะแยง · ไม่ต้องสมัครหรือล็อกอิน</p></div>
-    <a href="staff.html">สำหรับผู้ดูแล</a>
-  </header>
-  <section class="card" aria-label="ขั้นตอน">
-    <ol class="steps">
-      <li><b>1</b><span>เลือกอุปกรณ์ที่ต้องการ</span></li>
-      <li><b>2</b><span>กรอกชื่อ-นามสกุล เบอร์โทร และวันที่ใช้</span></li>
-      <li><b>3</b><span>รอเจ้าหน้าที่อนุมัติและโทรกลับ</span></li>
-    </ol>
+
+<header class="tb">
+  <div class="tb-in">
+    <a class="brandm" href="./" aria-label="ศูนย์ยืม-คืนอุปกรณ์ รพ.สต.บางขะแยง">
+      <span class="mk"><svg class="ico" aria-hidden="true"><use href="#i-box"/></svg></span>
+      <span class="bt"><b>ศูนย์ยืม-คืนอุปกรณ์</b><span>รพ.สต.บางขะแยง</span></span>
+    </a>
+    <nav class="tb-nav" aria-label="เมนูหลัก">
+      <a href="#list" data-tab="list">เลือกอุปกรณ์</a>
+      <a href="#status" data-tab="status">ติดตามคำขอ</a>
+    </nav>
+    <div class="tb-r">
+      <a class="tel" href="tel:0025982723" aria-label="โทร 02-598-2723"><svg class="ico sm" aria-hidden="true"><use href="#i-phone"/></svg></a>
+      <a class="btn sm" href="../" id="homeLink"><svg class="ico sm" aria-hidden="true"><use href="#i-home"/></svg><span class="lbl">หน้าแรก PT Station</span></a>
+    </div>
+  </div>
+</header>
+
+<main class="pub" id="pub">
+  <section class="hero2" aria-labelledby="h-main">
+    <div>
+      <h1 id="h-main">ยืมอุปกรณ์กายภาพบำบัด<br>ได้โดยไม่ต้องสมัครสมาชิก</h1>
+      <p class="lede">เลือกอุปกรณ์ที่ต้องการ กรอกชื่อและเบอร์โทร แล้วรอเจ้าหน้าที่โทรกลับเพื่อนัดรับของ</p>
+      <ol class="flow" aria-label="ขั้นตอนการขอยืม">
+        <li>เลือกอุปกรณ์</li>
+        <li>กรอกข้อมูลผู้ยืม</li>
+        <li>รอเจ้าหน้าที่โทรกลับ</li>
+      </ol>
+    </div>
+    <aside class="openbox" aria-label="ติดต่อเจ้าหน้าที่">
+      <div><svg class="ico" aria-hidden="true"><use href="#i-clock"/></svg><p><b>จันทร์–ศุกร์ 08:30–16:00 น.</b><span>ปิดเสาร์–อาทิตย์และวันหยุดนักขัตฤกษ์</span></p></div>
+      <div><svg class="ico" aria-hidden="true"><use href="#i-phone"/></svg><p><b>02-598-2723</b><span>โทรสอบถามก่อนมารับของได้</span></p></div>
+      <div><svg class="ico" aria-hidden="true"><use href="#i-pin"/></svg><p><b>รพ.สต.บางขะแยง</b><span>อ.เมืองปทุมธานี จ.ปทุมธานี</span></p></div>
+    </aside>
   </section>
-  <section class="card" aria-labelledby="h-list">
-    <h2 id="h-list">เลือกอุปกรณ์</h2>
-    <p class="hint">การส่งคำขอยังไม่ใช่การยืมสำเร็จ — ต้องรอเจ้าหน้าที่อนุมัติ</p>
-    <div class="tools"><div class="q"><svg class="ico" aria-hidden="true"><use href="#i-search"/></svg><label class="sr" for="q">ค้นหาอุปกรณ์</label><input id="q" type="search" placeholder="ค้นหาชื่ออุปกรณ์ เลขครุภัณฑ์ สถานที่" autocomplete="off"></div></div>
+
+  <div class="seg" role="tablist" aria-label="เลือกส่วนที่ต้องการ">
+    <button type="button" role="tab" id="t-list" aria-controls="p-list" aria-selected="true" data-tab="list"><svg class="ico sm" aria-hidden="true"><use href="#i-hand"/></svg>ขอยืมอุปกรณ์</button>
+    <button type="button" role="tab" id="t-status" aria-controls="p-status" aria-selected="false" data-tab="status"><svg class="ico sm" aria-hidden="true"><use href="#i-doc"/></svg>ติดตามคำขอ</button>
+  </div>
+
+  <section class="pane" id="p-list" role="tabpanel" aria-labelledby="t-list">
+    <div class="tools"><div class="q"><svg class="ico" aria-hidden="true"><use href="#i-search"/></svg><label class="sr" for="q">ค้นหาอุปกรณ์</label><input id="q" type="search" placeholder="ค้นหาชื่ออุปกรณ์ เลขครุภัณฑ์ หรือสถานที่" autocomplete="off"></div></div>
     <div class="chips" id="cats" role="group" aria-label="หมวดหมู่"></div>
-    <div id="list" style="margin-top:12px" aria-live="polite"><p class="loading">กำลังโหลดรายการ…</p></div>
+    <p class="hint" id="count" aria-live="polite"></p>
+    <div id="list" aria-live="polite"><div class="skel" aria-label="กำลังโหลดรายการ"><i></i><i></i><i></i></div></div>
+    <p class="hint" style="margin-top:14px">การส่งคำขอยังไม่ใช่การยืมสำเร็จ — ต้องรอเจ้าหน้าที่อนุมัติและโทรกลับก่อน</p>
   </section>
-  <section class="card" aria-labelledby="h-st">
-    <h2 id="h-st">ตรวจสอบสถานะคำขอ</h2>
-    <p class="hint">ใส่เลขคำขอที่ได้รับหลังส่งคำขอ และเบอร์โทรที่ใช้ขอ</p>
-    <form id="stForm" class="fg" novalidate>
-      <div><label for="sid">เลขคำขอ</label><input id="sid" name="id" type="text" placeholder="เช่น R00012" autocapitalize="characters" autocomplete="off"></div>
-      <div><label for="sph">เบอร์โทร</label><input id="sph" name="phone" type="tel" inputmode="numeric" autocomplete="tel"></div>
-      <div class="full"><button class="btn" type="submit">ตรวจสอบ</button></div>
-    </form>
-    <div id="stOut" aria-live="polite"></div>
+
+  <section class="pane" id="p-status" role="tabpanel" aria-labelledby="t-status" hidden>
+    <div class="stwrap">
+      <div class="card pad">
+        <h2>ตรวจสอบสถานะ</h2>
+        <p class="hint" style="margin-bottom:14px">ใส่เลขคำขอที่ได้รับหลังส่งคำขอ และเบอร์โทรที่ใช้ขอ</p>
+        <form id="stForm" class="fg" novalidate style="grid-template-columns:1fr">
+          <div><label for="sid">เลขคำขอ</label><input id="sid" name="id" type="text" placeholder="เช่น R00012" autocapitalize="characters" autocomplete="off"></div>
+          <div><label for="sph">เบอร์โทรที่ใช้ขอ</label><input id="sph" name="phone" type="tel" inputmode="numeric" autocomplete="tel" placeholder="0812345678"></div>
+          <div><button class="btn pri" type="submit" style="width:100%">ตรวจสอบสถานะ</button></div>
+        </form>
+      </div>
+      <div id="stOut" aria-live="polite"><div class="empty-st"><svg class="ico" aria-hidden="true"><use href="#i-doc"/></svg><b>ยังไม่มีผลตรวจสอบ</b><span>กรอกเลขคำขอและเบอร์โทร ระบบจะแสดงว่าคำขอของคุณอยู่ขั้นตอนไหน</span></div></div>
+    </div>
   </section>
-</div>
+
+  <footer class="pfoot">
+    <p>© PT Station — กายภาพบำบัด รพ.สต.บางขะแยง<br><a href="../">กลับหน้าแรก</a> · <a href="tel:0025982723">โทร 02-598-2723</a></p>
+    <details class="staff-d" id="staffD">
+      <summary><svg class="ico sm" aria-hidden="true"><use href="#i-lock"/></svg>เจ้าหน้าที่</summary>
+      <div class="pop">
+        <p>สำหรับผู้ดูแลระบบเท่านั้น ต้องใช้รหัสผ่านของเจ้าหน้าที่</p>
+        <a class="btn sm pri" href="staff.html">เข้าระบบผู้ดูแลครุภัณฑ์</a>
+        <a class="btn sm" href="" id="adminApp" rel="noopener">เปิดศูนย์ควบคุม (Apps Script)</a>
+      </div>
+    </details>
+  </footer>
+</main>
+
 <div id="toasts" role="status" aria-live="polite"></div>
 <dialog id="dlg" aria-label="ฟอร์มขอยืม"></dialog>
 <noscript><p style="padding:24px">ระบบนี้ต้องเปิดใช้งาน JavaScript</p></noscript>

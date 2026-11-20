@@ -796,6 +796,31 @@
     background-size:22px 9px;
     background-color:var(--sage-dark);
   }
+
+  /* ===== ศูนย์ยืม-คืนอุปกรณ์ (ทางเข้าจากหน้าแรก → ส่วนผู้ยืมก่อนเสมอ) ===== */
+  .nav-links a.nav-loan{color:var(--sage-dark);font-weight:700;}
+  .loan-strip{
+    background:var(--card);color:var(--ink);border:1.5px solid var(--sage);border-radius:var(--r-md);
+    padding:14px 18px;display:flex;align-items:center;justify-content:center;gap:10px;
+    font-family:var(--font-display);font-weight:600;font-size:.98rem;transition:background .15s, transform .15s;
+  }
+  .loan-strip .material-icons-outlined{color:var(--sage-dark);font-size:22px;}
+  .loan-strip small{font-weight:400;color:var(--text-soft);font-size:.8rem;margin-left:2px;}
+  .loan-strip:hover{background:var(--sage-light);transform:translateY(-2px);}
+  .loan-band{
+    display:grid;grid-template-columns:1.15fr .85fr;gap:36px;align-items:center;
+    background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow);padding:40px 44px;
+  }
+  .loan-band h2{font-size:1.75rem;margin-bottom:10px;}
+  .loan-band > div > p{color:var(--text-soft);max-width:48ch;}
+  .loan-steps{list-style:none;display:flex;flex-wrap:wrap;gap:10px 22px;margin:22px 0 0;padding:0;counter-reset:ls;}
+  .loan-steps li{display:flex;align-items:center;gap:10px;font-weight:600;font-size:.92rem;counter-increment:ls;}
+  .loan-steps li::before{content:counter(ls);width:28px;height:28px;border-radius:50%;background:var(--sage-light);color:var(--sage-dark);display:grid;place-items:center;font-size:.82rem;font-weight:700;flex-shrink:0;}
+  .loan-actions{display:flex;flex-direction:column;gap:12px;}
+  .loan-actions .btn{justify-content:center;padding:16px 22px;font-size:1rem;}
+  .loan-actions .btn-ghost{border-radius:999px;}
+  .loan-actions p{font-size:.82rem;color:var(--text-soft);text-align:center;}
+  @media (max-width:860px){ .loan-band{grid-template-columns:1fr;padding:28px 24px;gap:24px;} }
 </style>
 </head>
 <body>
@@ -819,6 +844,7 @@
       <a href="#process">วิธีจองคิว</a>
       <a href="#portfolio">ผลงานของเรา</a>
       <a href="posters.html">ความรู้สุขภาพ</a>
+      <a href="loan/" class="nav-loan">ยืมอุปกรณ์</a>
       <a href="#map">แผนที่</a>
       <a href="#workdays">วันทำการ</a>
       <a href="#contact">ติดต่อ</a>
@@ -840,6 +866,7 @@
     <a href="#process">วิธีจองคิว</a>
     <a href="#portfolio">ผลงานของเรา</a>
     <a href="posters.html">ความรู้สุขภาพ</a>
+      <a href="loan/" class="nav-loan">ยืมอุปกรณ์</a>
     <a href="#map">แผนที่</a>
     <a href="#workdays">วันทำการ</a>
     <a href="#contact">ติดต่อ</a>
@@ -915,6 +942,8 @@
       </a>
 
       <a class="cta-strip" href="#enter" id="enterBtnHero"><span class="material-icons-outlined">event_available</span>นัดหมายเลย</a>
+
+      <a class="loan-strip" href="loan/" id="heroLoanLink"><span class="material-icons-outlined">inventory_2</span>ขอยืมอุปกรณ์กายภาพบำบัด<small>ไม่ต้องสมัคร</small></a>
 
       <a class="footnote-bar" href="#process"><span class="material-icons-outlined">help_outline</span>ดูขั้นตอนการจองคิวกายภาพบำบัด ทำอย่างไร ใช้เวลากี่นาที</a>
     </div>
@@ -1216,6 +1245,28 @@
   </div>
 </section>
 
+<!-- ===== ศูนย์ยืม-คืนอุปกรณ์ (ผู้ยืม) ===== -->
+<section id="loan">
+  <div class="wrap">
+    <div class="loan-band">
+      <div>
+        <h2>ศูนย์ยืม-คืนอุปกรณ์</h2>
+        <p>ต้องการยืมอุปกรณ์กายภาพบำบัด? เลือกอุปกรณ์และส่งคำขอออนไลน์ได้เลย ไม่ต้องสมัครสมาชิกหรือล็อกอิน เจ้าหน้าที่จะพิจารณาแล้วโทรกลับเพื่อนัดรับของ</p>
+        <ol class="loan-steps" aria-label="ขั้นตอนการขอยืม">
+          <li>เลือกอุปกรณ์</li>
+          <li>กรอกชื่อและเบอร์โทร</li>
+          <li>รอเจ้าหน้าที่โทรกลับ</li>
+        </ol>
+      </div>
+      <div class="loan-actions">
+        <a class="btn btn-cta" href="loan/" id="loanEnterBtn"><span class="material-icons-outlined">inventory_2</span>ขอยืมอุปกรณ์</a>
+        <a class="btn btn-ghost" href="loan/#status" id="loanStatusBtn"><span class="material-icons-outlined">manage_search</span>ติดตามสถานะคำขอ</a>
+        <p>เปิดรับเรื่อง จันทร์–ศุกร์ 08:30–16:00 น. · โทร 02-598-2723</p>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- ===== CTA ===== -->
 <section id="enter">
   <div class="wrap">
@@ -1291,7 +1342,7 @@
         <a href="#" id="footFbLink" target="_blank" rel="noopener">ติดตามเฟซบุ๊กเพจ</a>
         <a href="#" id="openPrivacyPolicy" data-tab="privacy">นโยบายความเป็นส่วนตัว</a>
         <a href="#" id="openCookiePolicy" data-tab="cookie">นโยบายคุกกี้</a>
-        <a href="loan/" id="footLoanLink" rel="noopener">สำหรับเจ้าหน้าที่: ศูนย์ยืม-คืนอุปกรณ์</a>
+        <a href="loan/" id="footLoanLink" rel="noopener">ยืมอุปกรณ์ (ศูนย์ยืม-คืน)</a>
       </div>
     </div>
     <div class="footer-bottom">

@@ -89,10 +89,11 @@ function listOrEmpty(rows, msg) { return rows.length ? '<div class="list">' + ro
 // ---------- เข้าสู่ระบบ / เปลือกหน้า ----------
 function renderLogin(msg) {
   var name = ''; try { name = localStorage.getItem('elc.name') || ''; } catch (e) {}
-  $('#root').innerHTML = '<div class="login"><form id="loginForm" autocomplete="on"><div class="mk">' + icon('box') + '</div><div><h1>' + esc(C.ORG_NAME) + '</h1><p class="hint">' + esc(C.ORG_SUB || '') + ' · สำหรับเจ้าหน้าที่</p></div>' +
+  $('#root').innerHTML = '<div class="login"><aside class="login-art"><a class="back" href="index.html" aria-label="กลับหน้าขอยืมอุปกรณ์">' + icon('back') + '</a><h2>' + esc(C.ORG_NAME) + '</h2><p>' + esc(C.ORG_SUB || '') + ' · ทะเบียนครุภัณฑ์ ยืม-คืน ตรวจสภาพ และป้าย QR สำหรับเจ้าหน้าที่</p></aside>' +
+    '<div class="login-form"><form id="loginForm" autocomplete="on"><div class="mk">' + icon('box') + '</div><div><h1>เข้าสู่ระบบผู้ดูแล</h1><p class="hint">' + esc(C.ORG_SUB || '') + ' · สำหรับเจ้าหน้าที่เท่านั้น</p></div>' +
     '<div><label for="ln">ชื่อผู้ใช้งาน <em>*</em></label><input id="ln" name="name" type="text" autocomplete="name" required minlength="2" maxlength="60" placeholder="ชื่อ-สกุล หรือชื่อเล่น" value="' + esc(name) + '"><p class="hint">ใช้บันทึกว่าใครเป็นผู้ทำรายการ</p></div>' +
     '<div><label for="lp">รหัสผ่าน <em>*</em></label><input id="lp" name="pin" type="password" autocomplete="current-password" required></div>' +
-    '<p class="err" role="alert" id="loginErr" ' + (msg ? '' : 'hidden') + '>' + esc(msg || '') + '</p><button class="btn pri" type="submit">เข้าสู่ระบบ</button></form></div>';
+    '<p class="err" role="alert" id="loginErr" ' + (msg ? '' : 'hidden') + '>' + esc(msg || '') + '</p><button class="btn pri" type="submit">เข้าสู่ระบบ</button><a class="btn ghost" href="index.html">กลับไปหน้าขอยืมอุปกรณ์</a></form></div></div>';
   var f = $('#loginForm');
   f.addEventListener('submit', function (e) {
     e.preventDefault(); var b = f.querySelector('button'), er = $('#loginErr'); b.disabled = true; b.classList.add('busy'); er.hidden = true;
@@ -102,14 +103,15 @@ function renderLogin(msg) {
   });
   (name ? f.elements.pin : f.elements.name).focus();
 }
-var NAV = [['', 'home', 'ภาพรวม'], ['assets', 'box', 'ครุภัณฑ์'], ['loans', 'swap', 'ยืม-คืน'], ['scan', 'scan', 'สแกน'], ['print', 'qr', 'พิมพ์ QR'], ['log', 'log', 'ประวัติ']];
+var NAV = [['', 'home', 'ภาพรวม', 'หลัก'], ['assets', 'box', 'ครุภัณฑ์', 'ทะเบียน'], ['loans', 'swap', 'ยืม-คืน', 'ทะเบียน'], ['scan', 'scan', 'สแกน', 'เครื่องมือ'], ['print', 'qr', 'พิมพ์ QR', 'เครื่องมือ'], ['log', 'log', 'ประวัติ', 'เครื่องมือ']];
+function navHtml() { var g = '', h = ''; NAV.forEach(function (n) { if (n[3] !== g) { g = n[3]; h += '<h2>' + g + '</h2>'; } h += '<a href="#/' + n[0] + '" data-nav="' + n[0] + '">' + icon(n[1]) + '<span>' + n[2] + '</span></a>'; }); return h; }
 function shell() {
   if ($('#view')) return;
   var s = S.sess;
   $('#root').innerHTML = '<div class="top"><div><b>' + esc(C.ORG_NAME) + '</b><br><span>' + esc(s.name) + ' · ผู้ดูแล' + '</span></div><button class="btn sm" data-do="logout" aria-label="ออกจากระบบ">' + icon('out') + '</button></div>' +
     '<div class="app"><aside class="side"><div class="brand"><span class="mk">' + icon('box') + '</span><span>' + esc(C.ORG_NAME) + '<small>' + esc(C.ORG_SUB || '') + '</small></span></div>' +
-    '<nav class="nav" aria-label="เมนูหลัก">' + NAV.map(function (n) { return '<a href="#/' + n[0] + '" data-nav="' + n[0] + '">' + icon(n[1]) + '<span>' + n[2] + '</span></a>'; }).join('') + '</nav>' +
-    '<div class="who"><b>' + esc(s.name) + '</b>' + 'ผู้ดูแลระบบ' + (C.HOME_URL ? '<br><a href="' + esc(C.HOME_URL) + '">กลับระบบหลัก</a>' : '') + '<br><button class="btn sm" data-do="logout">' + icon('out') + 'ออกจากระบบ</button></div></aside>' +
+    '<nav class="nav" aria-label="เมนูหลัก">' + navHtml() + '</nav>' +
+    '<div class="who"><b>' + esc(s.name) + '</b>' + 'ผู้ดูแลระบบ' + '<br><a href="index.html">หน้าขอยืม (ผู้ใช้ทั่วไป)</a>' + (C.HOME_URL ? '<br><a href="' + esc(C.HOME_URL) + '">กลับระบบหลัก</a>' : '') + '<br><button class="btn sm" data-do="logout">' + icon('out') + 'ออกจากระบบ</button></div></aside>' +
     '<main class="main" id="view" tabindex="-1"></main></div>';
 }
 function markNav(key) {

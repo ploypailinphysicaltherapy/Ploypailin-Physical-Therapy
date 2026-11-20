@@ -3,16 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#1967D2">
+<meta name="theme-color" content="#0E6577">
 <meta name="robots" content="noindex">
 <title>ข้อมูลครุภัณฑ์</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@400;600;700&family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <style>
   body{padding:max(16px,env(safe-area-inset-top)) 16px max(16px,env(safe-area-inset-bottom))}
-  main{max-width:520px;margin:0 auto;padding:22px}
+  main{max-width:520px;margin:0 auto;padding:26px}
   .no{margin:0 0 2px;font-weight:700;color:var(--link)}
   main h1{margin-bottom:10px;overflow-wrap:anywhere}
   .st{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
@@ -25,6 +25,7 @@
 </style>
 </head>
 <body>
+<div class="roofline" aria-hidden="true" style="margin:-16px -16px 16px"></div>
 <main id="m" aria-live="polite"><p class="loading">กำลังโหลดข้อมูล…</p></main>
 <p class="foot" id="f"></p>
 <script src="config.js"></script>
@@ -51,7 +52,7 @@
       '<div class="st"><span class="badge ' + cls + '">' + esc(a.status) + '</span></div>' + (ln ? '<div class="big ' + ln[0] + '">' + esc(ln[1]) + '</div>' : '') +
       '<dl class="kv" style="margin-top:14px">' + rows.map(function (r) { return '<dt>' + esc(r[0]) + '</dt><dd>' + esc(r[1]) + '</dd>'; }).join('') + '</dl>' +
       (a.loanState === 'available' || a.loanState === 'onLoan' ? '<a class="btn pri cta" href="index.html?asset=' + encodeURIComponent(a.assetId) + '">ขอยืมอุปกรณ์นี้</a>' : '') +
-      '<a class="btn' + (staff ? ' pri' : '') + ' cta" href="' + esc(link) + '">' + (staff ? 'เปิดในระบบ — ให้ยืม / รับคืน / ตรวจสภาพ' : 'สำหรับผู้ดูแล: เข้าสู่ระบบ') + '</a>';
+      (staff ? '<a class="btn pri cta" href="' + esc(link) + '">เปิดในระบบ — ให้ยืม / รับคืน / ตรวจสภาพ</a>' : '<p class="hint" style="text-align:center;margin-top:18px"><a href="' + esc(link) + '">เจ้าหน้าที่ เข้าสู่ระบบ</a></p>');
     document.title = (a.assetNo || a.name) + ' · ข้อมูลครุภัณฑ์';
   }).catch(function (e) { m.innerHTML = '<h1>เปิดข้อมูลไม่สำเร็จ</h1><p class="hint" style="margin-top:8px">' + esc(e.message) + '</p><button class="btn cta" onclick="location.reload()">ลองใหม่</button>'; });
 })();

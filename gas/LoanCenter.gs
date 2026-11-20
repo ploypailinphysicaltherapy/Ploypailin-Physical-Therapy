@@ -995,7 +995,12 @@ function lcReqList() {
   open.sort(function (x, y) { return (y.daysLate - x.daysLate) || String(x.dueDate).localeCompare(String(y.dueDate)); });
   return {
     today: today, borrowerTypes: LC_BORROWER_TYPES, frontendUrl: lc_prop_('LC_FRONTEND_URL') || '',
-    pending: all.filter(function (r) { return r.status === LC_REQ_PENDING; }),
+    // แนบสถานะอุปกรณ์ให้การ์ดคำขอ: ถ้ายังถูกยืมอยู่ (busyUntil) จะอนุมัติไม่ได้จนกว่าจะรับคืน
+    pending: all.filter(function (r) { return r.status === LC_REQ_PENDING; }).map(function (r) {
+      const cur = open.filter(function (l) { return l.assetId === r.assetId; })[0];
+      r.busyUntil = cur ? String(cur.dueDate || '') : ''; r.busyOverdue = !!(cur && cur.overdue);
+      return r;
+    }),
     decided: all.filter(function (r) { return r.status !== LC_REQ_PENDING; }).reverse().slice(0, 30),
     openLoans: open
   };

@@ -3449,9 +3449,10 @@ html{-webkit-text-size-adjust:100%}
       return '<div class="rq-card" data-id="' + eqcEsc(q.reqId) + '"><div class="rq-top"><b>' + eqcEsc(q.assetNo || q.assetId) + ' · ' + eqcEsc(q.assetName) + '</b><span class="eqc-b mid">รออนุมัติ</span></div>' +
         '<div class="rq-sub">ผู้ขอ <b>' + eqcEsc(q.requesterName) + '</b> · โทร <a href="tel:' + eqcEsc(q.phone) + '">' + eqcEsc(q.phone) + '</a> · ส่งเมื่อ ' + eqcTh(q.createdAt) + '</div>' +
         '<div class="rq-sub">ต้องการใช้ ' + eqcTh(q.neededFrom) + ' → คืน ' + eqcTh(q.neededTo) + (q.purpose ? ' · ' + eqcEsc(q.purpose) : '') + '</div>' +
+        (q.busyUntil ? '<div class="rq-sub" style="color:#b3261e;font-weight:600">อุปกรณ์นี้ยังถูกยืมอยู่' + (q.busyOverdue ? ' (เกินกำหนดคืนแล้ว)' : ' · กำหนดคืน ' + eqcTh(q.busyUntil)) + ' — รับคืนก่อน จึงจะอนุมัติได้</div>' : '<div class="rq-sub" style="opacity:.75">เมื่ออนุมัติ ระบบจะบันทึกเป็นยืมตั้งแต่วันนี้' + (q.neededFrom && q.neededFrom > r.today ? ' (ผู้ขอระบุเริ่มใช้ ' + eqcTh(q.neededFrom) + ')' : '') + ' · กำหนดคืน ' + eqcTh(q.neededTo < r.today ? r.today : q.neededTo) + '</div>') +
         '<div class="rq-acts"><select data-rq="bt" aria-label="ประเภทผู้ยืม">' + r.borrowerTypes.map(function (t, i) { return '<option' + (i === 1 ? ' selected' : '') + '>' + eqcEsc(t) + '</option>'; }).join('') + '</select>' +
         '<input type="text" data-rq="note" maxlength="200" placeholder="หมายเหตุ (ถ้ามี)" aria-label="หมายเหตุ">' +
-        '<button type="button" class="eqc-btn is-primary" data-rq="ok">อนุมัติ → บันทึกการยืม</button><button type="button" class="eqc-btn" data-rq="no">ปฏิเสธ</button></div></div>';
+        '<button type="button" class="eqc-btn is-primary" data-rq="ok"' + (q.busyUntil ? ' disabled title="อุปกรณ์ยังถูกยืมอยู่ — รับคืนก่อน"' : '') + '>อนุมัติ → บันทึกการยืม</button><button type="button" class="eqc-btn" data-rq="no">ปฏิเสธ</button></div></div>';
     }).join('') : '<div class="eqc-empty"><b>ไม่มีคำขอที่รออนุมัติ</b>เมื่อมีผู้ใช้ส่งคำขอจากหน้าเว็บ จะแสดงที่นี่</div>';
     h += '<div class="rq-t">กำลังยืมอยู่ — รับคืน (' + r.openLoans.length + ')</div>';
     h += r.openLoans.length ? r.openLoans.map(function (l) {

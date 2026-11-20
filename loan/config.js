@@ -6,5 +6,7 @@ window.ELC_CONFIG = {
   ORG_NAME: 'ศูนย์ยืม-คืนอุปกรณ์',
   ORG_SUB: 'รพ.สต.บางขะแยง',
   // ปุ่ม "กลับระบบหลัก" → หน้าแรก PT Station (โฟลเดอร์ก่อนหน้า)
-  HOME_URL: '../'
+  HOME_URL: '../',
+  // ทางเข้าระบบแอดมิน (Apps Script) — แสดงเฉพาะในเมนู "เจ้าหน้าที่" ท้ายหน้าขอยืม · เว้นว่างเพื่อซ่อน
+  ADMIN_URL: 'https://script.google.com/macros/s/AKfycbzIVunburtBYHAN8oj300unyxDqLlI6oYtcr075uglatGxBu8b6hsuWO-23ZFJ69xQ/exec'
 };
