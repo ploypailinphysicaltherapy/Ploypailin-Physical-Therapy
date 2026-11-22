@@ -89,13 +89,14 @@ function listOrEmpty(rows, msg) { return rows.length ? '<div class="list">' + ro
 // ---------- เข้าสู่ระบบ / เปลือกหน้า ----------
 function renderLogin(msg) {
   var name = ''; try { name = localStorage.getItem('elc.name') || ''; } catch (e) {}
+  // โหมดตัวอย่าง (เข้าได้เฉพาะหลังล็อกอินจริง): เข้าระบบจำลองให้อัตโนมัติ ไม่ต้องกรอกรหัส
+  if (API.demo) { API.login(name || 'เจ้าหน้าที่', window.ELC_DEMO.pin).then(function () { S.cfg = null; invalidate(); route(); }).catch(function (x) { $('#root').innerHTML = '<p class="loading">' + esc(x.message) + '</p>'; }); return; }
   $('#root').innerHTML = '<div class="login"><aside class="login-art"><a class="back" href="index.html" aria-label="กลับหน้าขอยืมอุปกรณ์">' + icon('back') + '</a><h2>' + esc(C.ORG_NAME) + '</h2><p>' + esc(C.ORG_SUB || '') + ' · ทะเบียนครุภัณฑ์ ยืม-คืน ตรวจสภาพ และป้าย QR สำหรับเจ้าหน้าที่</p></aside>' +
     '<div class="login-form"><form id="loginForm" autocomplete="on"><div class="mk">' + icon('box') + '</div><div><h1>เข้าสู่ระบบผู้ดูแล</h1><p class="hint">' + esc(C.ORG_SUB || '') + ' · สำหรับเจ้าหน้าที่เท่านั้น</p></div>' +
     '<div><label for="ln">ชื่อผู้ใช้งาน <em>*</em></label><input id="ln" name="name" type="text" autocomplete="name" required minlength="2" maxlength="60" placeholder="ชื่อ-สกุล หรือชื่อเล่น" value="' + esc(name) + '"><p class="hint">ใช้บันทึกว่าใครเป็นผู้ทำรายการ</p></div>' +
     '<div><label for="lp">รหัสผ่าน <em>*</em></label><input id="lp" name="pin" type="password" autocomplete="current-password" required></div>' +
-    (API.demo ? '<p class="demo-note">โหมดตัวอย่าง — ใช้รหัสผ่าน <b>' + esc(window.ELC_DEMO.pin) + '</b> (ชื่อผู้ใช้ใส่อะไรก็ได้)</p>' : '') +
     '<p class="err" role="alert" id="loginErr" ' + (msg ? '' : 'hidden') + '>' + esc(msg || '') + '</p><button class="btn pri" type="submit">เข้าสู่ระบบ</button>' +
-    (API.demo ? '' : '<a class="btn ghost" href="?demo=1">ดูตัวอย่างระบบ (ข้อมูลจำลอง)</a>') + '<a class="btn ghost" href="index.html">กลับไปหน้าขอยืมอุปกรณ์</a></form></div></div>';
+    '<a class="btn ghost" href="index.html">กลับไปหน้าขอยืมอุปกรณ์</a></form></div></div>';
   var f = $('#loginForm');
   f.addEventListener('submit', function (e) {
     e.preventDefault(); var b = f.querySelector('button'), er = $('#loginErr'); b.disabled = true; b.classList.add('busy'); er.hidden = true;
@@ -113,7 +114,7 @@ function shell() {
   $('#root').innerHTML = '<div class="top"><div><b>' + esc(C.ORG_NAME) + '</b><br><span>' + esc(s.name) + ' · ผู้ดูแล' + '</span></div><button class="btn sm" data-do="logout" aria-label="ออกจากระบบ">' + icon('out') + '</button></div>' +
     '<div class="app"><aside class="side"><div class="brand"><span class="mk">' + icon('box') + '</span><span>' + esc(C.ORG_NAME) + '<small>' + esc(C.ORG_SUB || '') + '</small></span></div>' +
     '<nav class="nav" aria-label="เมนูหลัก">' + navHtml() + '</nav>' +
-    '<div class="who"><b>' + esc(s.name) + '</b>' + 'ผู้ดูแลระบบ' + '<br><a href="index.html">หน้าขอยืม (ผู้ใช้ทั่วไป)</a>' + (C.HOME_URL ? '<br><a href="' + esc(C.HOME_URL) + '">กลับระบบหลัก</a>' : '') + '<br><button class="btn sm" data-do="logout">' + icon('out') + 'ออกจากระบบ</button></div></aside>' +
+    '<div class="who"><b>' + esc(s.name) + '</b>' + 'ผู้ดูแลระบบ' + '<br><a href="index.html">หน้าขอยืม (ผู้ใช้ทั่วไป)</a>' + (API.demo ? '' : '<br><button class="btn sm ghost" data-do="demoOn">' + icon('check') + 'โหมดตัวอย่าง</button>') + (C.HOME_URL ? '<br><a href="' + esc(C.HOME_URL) + '">กลับระบบหลัก</a>' : '') + '<br><button class="btn sm" data-do="logout">' + icon('out') + 'ออกจากระบบ</button></div></aside>' +
     '<main class="main" id="view" tabindex="-1"></main></div>';
 }
 function markNav(key) {
@@ -482,7 +483,9 @@ document.addEventListener('click', function (e) {
     countSel(); return;
   }
   switch (el.dataset.do) {
-    case 'logout': API.logout().then(function () { S.sess = null; S.cfg = null; invalidate(); $('#root').innerHTML = ''; renderLogin(); }); break;
+    case 'demoOn': if (window.ELC_DEMO && window.ELC_DEMO.enter()) location.reload(); break;
+    case 'logout': if (API.demo) { try { var rs = JSON.parse(localStorage.getItem('elc.session') || 'null'); if (rs && C.API_URL) fetch(C.API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: 'logout', token: rs.token, args: {} }) }).catch(function () {}); localStorage.removeItem('elc.session'); } catch (e) {} window.ELC_DEMO.exit(); break; }
+      API.logout().then(function () { S.sess = null; S.cfg = null; invalidate(); $('#root').innerHTML = ''; renderLogin(); }); break;
     case 'reload': route(); break;
     case 'photo': pickPhoto(id); break;
     case 'printOne': S.preselect = [id]; goto('#/print'); break;

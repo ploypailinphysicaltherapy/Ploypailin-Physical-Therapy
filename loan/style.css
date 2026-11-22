@@ -3,29 +3,24 @@
    ใช้พาเลตเดียวกับ landing (ชมพูกุหลาบ #d6577e / #b23a63 / #9c2f52 พื้นครีม #fdf6f4 ตัวอักษร #2a2530) ให้ทุกหน้ากลมกลืนเป็นเว็บเดียวกัน
    token ตั้งชื่อแบบ shadcn — เปลี่ยนสีทั้งระบบที่บล็อก :root นี้ที่เดียว */
 :root{
-  --background:#fdf6f4;--foreground:#2a2530;
+  --background:#ffffff;--foreground:#26212a;
   --card:#fff;--card-foreground:#2a2530;
-  --muted:#f8ecee;--muted-foreground:#6f5f67;
-  --border:#f0dde3;--input:#e0c6cf;
-  --primary:#b23a63;--primary-dark:#7a2440;--primary-foreground:#fff;--primary-soft:#fbe7ec;
+  --muted:#f6f3f4;--muted-foreground:#645a60;
+  --border:#ebe5e8;--input:#d9cfd4;
+  --primary:#b23a63;--primary-dark:#7a2440;--primary-foreground:#fff;--primary-soft:#fdf0f3;
   --ring:#d6577e;
   --ok:#0b6b3a;--ok-soft:#e1f3e8;--warn:#8a5a00;--warn-soft:#fbefd2;--bad:#b42318;--bad-soft:#fde7e4;
   --r-sm:8px;--r-md:14px;--r-lg:22px;
-  --shadow:0 10px 30px rgba(42,37,48,.08);--shadow-lg:0 24px 60px -18px rgba(122,36,64,.32);
+  --shadow:0 6px 24px rgba(38,33,42,.07);--shadow-lg:0 24px 60px -18px rgba(38,33,42,.28);
   --ease:cubic-bezier(.22,1,.36,1);
   --font:"Sarabun","Noto Sans Thai",system-ui,-apple-system,"Segoe UI",sans-serif;
-  --nav-w:248px;color-scheme:light dark;
+  --nav-w:248px;color-scheme:light;
   /* ชื่อเดิมที่โค้ดหน้าผู้ดูแลยังใช้ — ชี้ไปที่ token ใหม่ */
   --bg:var(--background);--surface:var(--card);--ink:var(--foreground);--ink2:var(--muted-foreground);
   --line:var(--border);--line2:var(--input);--link:var(--primary);--accent:var(--primary);--accent-ink:var(--primary-foreground);
   --accent-soft:var(--primary-soft);--off:#5f5459;--off-soft:var(--muted);--r:var(--r-sm);--rc:var(--r-md);
 }
-@media(prefers-color-scheme:dark){:root{
-  --background:#1b1217;--foreground:#f6ecef;--card:#261a20;--card-foreground:#f6ecef;
-  --muted:#33232b;--muted-foreground:#c7aeb8;--border:#4a3340;--input:#634553;
-  --primary:#f08aa8;--primary-dark:#f8b6c9;--primary-foreground:#3a0f1e;--primary-soft:#3d2430;--ring:#f08aa8;
-  --ok:#7bd89a;--ok-soft:#12301f;--warn:#f0bb62;--warn-soft:#33270f;--bad:#ff9c92;--bad-soft:#3d1a17;--off:#c2aeb6;
-  --shadow:0 10px 30px rgba(0,0,0,.4);--shadow-lg:0 24px 60px -18px rgba(0,0,0,.6)}}
+
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
 body{margin:0;background:var(--background);color:var(--foreground);font:400 1rem/1.65 var(--font);font-variant-numeric:tabular-nums;min-height:100vh}
@@ -190,14 +185,14 @@ details.more summary{cursor:pointer;font-weight:600;padding:8px 0;min-height:44p
 
 /* ---------- เข้าสู่ระบบผู้ดูแล (แบ่งสองฝั่ง) ---------- */
 .login{min-height:100vh;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);background:var(--card)}
-.login-art{position:relative;display:flex;flex-direction:column;justify-content:flex-end;gap:10px;padding:40px 40px 76px;color:#fff;overflow:hidden;background:radial-gradient(120% 90% at 0% 0%,#d6577e 0%,#b23a63 45%,#7a2440 100%)}
-.login-art::before{content:"";position:absolute;inset:0;background-image:linear-gradient(135deg,rgba(255,255,255,.07) 25%,transparent 25%),linear-gradient(225deg,rgba(255,255,255,.07) 25%,transparent 25%);background-size:44px 18px;background-position:0 0,22px 0;mask-image:linear-gradient(180deg,#000,transparent 70%)}
+.login-art{position:relative;display:flex;flex-direction:column;justify-content:flex-end;gap:10px;padding:40px 40px 76px;color:var(--foreground);overflow:hidden;background:linear-gradient(160deg,#fff 0%,var(--primary-soft) 100%);border-right:1px solid var(--border)}
+.login-art::before{content:"";position:absolute;inset:0;background-image:linear-gradient(135deg,rgba(178,58,99,.06) 25%,transparent 25%),linear-gradient(225deg,rgba(178,58,99,.06) 25%,transparent 25%);background-size:44px 18px;background-position:0 0,22px 0;mask-image:linear-gradient(180deg,#000,transparent 70%)}
 .login-art>*{position:relative}
-.login-art .back{position:absolute;top:24px;left:24px;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;color:#fff;background:rgba(255,255,255,.16);backdrop-filter:blur(6px);text-decoration:none;transition:background .18s}
-.login-art .back:hover{background:rgba(255,255,255,.28)}
-.login-art :focus-visible{outline-color:#fff}
+.login-art .back{position:absolute;top:24px;left:24px;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;color:var(--primary);background:#fff;border:1px solid var(--border);backdrop-filter:blur(6px);text-decoration:none;transition:background .18s}
+.login-art .back:hover{background:var(--primary-soft)}
+
 .login-art h2{font-size:clamp(1.6rem,1.2rem + 1.4vw,2.2rem);max-width:16ch}
-.login-art p{color:rgba(255,255,255,.86);max-width:36ch}
+.login-art p{color:var(--muted-foreground);max-width:36ch}
 .login-form{display:grid;place-items:center;padding:32px 20px}
 .login form{width:100%;max-width:400px;display:grid;gap:16px;background:none;border:0}
 .login .mk{width:48px;height:48px;border-radius:14px;background:var(--primary);color:var(--primary-foreground);display:grid;place-items:center}
@@ -395,13 +390,17 @@ body>main:not(.pub){background:var(--card);border:1px solid var(--border);border
 .js .eq-img img,.js .th img,.js .thumb,.js .pic img{opacity:0;transition:opacity .35s ease}
 .js .eq-img img.ld,.js .th img.ld,.js .thumb.ld,.js .pic img.ld{opacity:1}
 .eq-img:has(img:not(.ld)),.th:has(img:not(.ld)){background:linear-gradient(90deg,var(--sk-a) 25%,var(--sk-b) 50%,var(--sk-a) 75%);background-size:200% 100%;animation:shine 1.3s linear infinite}
-.demo-bar{position:relative;z-index:70;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:6px 14px;padding:8px 14px;padding-top:max(8px,env(safe-area-inset-top));background:var(--primary-dark);color:#fff;font-size:.9375rem;line-height:1.4;text-align:center}
-.demo-bar b{display:inline-block;padding:1px 10px;border-radius:999px;background:#fff;color:#7a2440;font-weight:700}
-.demo-bar a,.demo-bar button{all:unset;cursor:pointer;color:#fff;font-weight:600;text-decoration:underline;text-underline-offset:3px;border-radius:6px;padding:4px 6px}
-.demo-bar a:hover,.demo-bar button:hover{background:rgba(255,255,255,.18)}
-.demo-bar :focus-visible{outline:2px solid #fff;outline-offset:2px}
+.demo-bar{border-bottom:1px solid var(--border);position:relative;z-index:70;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:6px 14px;padding:8px 14px;padding-top:max(8px,env(safe-area-inset-top));background:var(--primary-soft);color:var(--primary-dark);font-size:.9375rem;line-height:1.4;text-align:center}
+.demo-bar b{display:inline-block;padding:1px 10px;border-radius:999px;background:var(--primary);color:#fff;font-weight:700}
+.demo-bar a,.demo-bar button{all:unset;cursor:pointer;color:var(--primary-dark);font-weight:600;text-decoration:underline;text-underline-offset:3px;border-radius:6px;padding:4px 6px}
+.demo-bar a:hover,.demo-bar button:hover{background:#fff}
+.demo-bar :focus-visible{outline:2px solid var(--primary);outline-offset:2px}
 .demo-note{padding:10px 14px;border-radius:var(--r-md);background:var(--primary-soft);color:var(--primary-dark);font-size:.9375rem}
 .demo-fill{margin-top:10px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;color:var(--muted-foreground);font-size:.9375rem}
 .demo-link{font-weight:600}
 @media print{#elc-bar,.demo-bar{display:none!important}}
 @media(max-width:600px){.demo-bar{gap:0 8px;padding:6px 10px;font-size:.875rem}.demo-bar>span{display:none}.demo-bar a,.demo-bar button{padding:6px 4px}}
+/* ธีมขาว: แผงเข้าสู่ระบบเรียบ ไม่มีลายพื้น และเว้นที่ให้ปุ่มลอยเมนูระบบ */
+.login-art::before{display:none}
+.login-art{padding-bottom:96px}
+@media(max-width:820px){.login-art{padding-bottom:28px}}

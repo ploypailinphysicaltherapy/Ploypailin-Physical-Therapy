@@ -4,25 +4,28 @@
  * ร่วมกับ "ชีตจำลอง" ที่เก็บใน sessionStorage ของแท็บนี้ — กติกา/การตรวจข้อมูล/ข้อความผิดพลาดจึงเหมือนของจริงทุกอย่าง
  * ข้อมูลตัวอย่างสร้างจาก lcDemoSeed() ตัวเดียวกับที่ปุ่ม "สร้างข้อมูลตัวอย่าง" ในหน้าแอดมินใช้
  *
- * เปิด:  เพิ่ม ?demo=1 ท้าย URL   ปิด: ?demo=0 (หรือปุ่ม "ออกจากโหมดตัวอย่าง" บนแถบด้านบน)
- * รหัสผู้ดูแลในโหมดตัวอย่าง: 123456 (ไม่ใช่รหัสจริง)
+ * เปิด: ต้องล็อกอินเจ้าหน้าที่จริงก่อน แล้วกด "โหมดตัวอย่าง" ในเมนูผู้ดูแล (ไม่ล็อกอิน = ใช้ไม่ได้ และไม่มีทางเข้าบนหน้าสาธารณะ)
+ * ปิด: ปุ่ม "ออกจากโหมดตัวอย่าง" บนแถบด้านบน หรือเมื่อเซสชันเจ้าหน้าที่หมดอายุ/ออกจากระบบ
  */
 (function () {
   var AK = 'elc.demo', DK = 'elc.demo.db', PIN = '123456';
   var C = window.ELC_CONFIG || {};
   function ss() { try { return window.sessionStorage; } catch (e) { return null; } }
+  // โหมดตัวอย่างเป็นของเจ้าหน้าที่: ใช้ได้เฉพาะเมื่อมีเซสชันเจ้าหน้าที่จริง (ล็อกอินแล้ว) อยู่ในเครื่องนี้
+  function staffOk() { try { var r = JSON.parse(window.localStorage.getItem('elc.session') || 'null'); return !!(r && r.token && r.exp > Date.now()); } catch (e) { return false; } }
+  function wipe() { var s = ss(); if (s) { s.removeItem(AK); s.removeItem(DK); s.removeItem('elc.demo.session'); } }
 
   // ----- เปิด/ปิดจาก URL -----
   (function () {
     try {
       var u = new URL(location.href), v = u.searchParams.get('demo'), s = ss();
       if (v === null || !s) return;
-      if (v === '1' || v === 'true') s.setItem(AK, '1'); else { s.removeItem(AK); s.removeItem(DK); s.removeItem('elc.demo.session'); }
+      if (v === '1' || v === 'true') { if (staffOk()) s.setItem(AK, '1'); } else wipe();   // ไม่ได้ล็อกอิน → เพิกเฉย ?demo=1
       u.searchParams.delete('demo');
       history.replaceState(null, '', u.pathname + u.search + u.hash);
     } catch (e) {}
   })();
-  function active() { var s = ss(); return !!(s && s.getItem(AK) === '1'); }
+  function active() { var s = ss(); if (!(s && s.getItem(AK) === '1')) return false; if (!staffOk()) { wipe(); return false; } return true; }
 
   // ----- SHA-256 แบบ synchronous (Apps Script computeDigest เป็น sync; WebCrypto เป็น async) -----
   var K = [], H0 = [];
@@ -169,13 +172,14 @@
   }
 
   api.active = active;
+  api.enter = function () { var s = ss(); if (s && staffOk()) { s.setItem(AK, '1'); return true; } return false; };
   api.pin = PIN;
   api.raw = raw;
   api.boot = boot;
   api.hint = { reqId: 'DEMOR001', phone: '0812345001' };
   api.reset = function () { var s = ss(); if (s) { s.removeItem(DK); s.removeItem('elc.demo.session'); } engine = null; booting = null; db = null; files = {}; };
   api.exit = function () {
-    var s = ss(); if (s) { s.removeItem(AK); s.removeItem(DK); s.removeItem('elc.demo.session'); }
+    wipe();
     location.reload();
   };
   window.ELC_DEMO = api;

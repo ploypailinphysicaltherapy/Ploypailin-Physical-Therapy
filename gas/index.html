@@ -3433,6 +3433,10 @@ html{-webkit-text-size-adjust:100%}
   }
   function eqcRun(fn, args, ok, fail) {
     var r = google.script.run.withSuccessHandler(ok || function () {}).withFailureHandler(function (e) { eqcToast((e && e.message) || 'เกิดข้อผิดพลาด ลองใหม่อีกครั้ง', true); if (fail) fail(e); });
+    if (typeof r[fn] !== 'function') {   // โปรเจกต์ยังไม่มีฟังก์ชันนี้ (วางไฟล์ .gs ไม่ครบ / ยังไม่ Deploy เวอร์ชันใหม่)
+      eqcToast('ไม่พบฟังก์ชัน ' + fn + ' ในโปรเจกต์ — วางไฟล์ LoanCenter.gs เวอร์ชันล่าสุด แล้ว Deploy → จัดการการ Deploy → เวอร์ชันใหม่', true);
+      if (fail) fail(); return;
+    }
     r[fn].apply(r, args || []);
   }
   function eqcStatusBadge(s) { var c = s === 'ใช้งานได้' ? 'ok' : (s === 'ชำรุด / รอซ่อม' ? 'bad' : (s === 'ส่งซ่อม' ? 'mid' : 'off')); return '<span class="eqc-b ' + c + '">' + eqcEsc(s) + '</span>'; }
@@ -3529,7 +3533,7 @@ html{-webkit-text-size-adjust:100%}
     st.innerHTML = d && d.has ? '<b>มีข้อมูลตัวอย่างอยู่</b> · ครุภัณฑ์ ' + d.assets + ' · ยืม-คืน ' + d.loans + ' · คำขอ ' + d.requests + ' (ลบได้โดยไม่กระทบข้อมูลจริง)' : 'ยังไม่มีข้อมูลตัวอย่าง — สร้างเพื่อดูหน้าจอและลองยืม-คืนได้ทันที';
     clr.hidden = !(d && d.has); sd.lastChild.nodeValue = d && d.has ? 'สร้างชุดใหม่' : 'สร้างข้อมูลตัวอย่าง';
     var u = d && d.frontendUrl;
-    if (u) { lk.hidden = false; lk.innerHTML = '<a href="' + eqcEsc(u) + '?demo=1" target="_blank" rel="noopener">ดูหน้าผู้ยืม (แบบจำลอง)</a><a href="' + eqcEsc(u) + 'staff.html?demo=1" target="_blank" rel="noopener">ดูหน้าเจ้าหน้าที่ (แบบจำลอง)</a>' + (d.has ? '<a href="' + eqcEsc(u) + 'index.html#status" target="_blank" rel="noopener">ติดตามคำขอ: ' + eqcEsc(d.trackReqId) + ' / ' + eqcEsc(d.trackPhone) + '</a>' : ''); } else lk.hidden = true;
+    if (u) { lk.hidden = false; lk.innerHTML = '<a href="' + eqcEsc(u) + 'staff.html" target="_blank" rel="noopener">เปิดระบบเจ้าหน้าที่ (ล็อกอินแล้วกด “โหมดตัวอย่าง”)</a>' + (d.has ? '<span>ติดตามคำขอตัวอย่าง: ' + eqcEsc(d.trackReqId) + ' / ' + eqcEsc(d.trackPhone) + '</span>' : ''); } else lk.hidden = true;
   }
   function eqcDemoStatus() { eqcRun('lcDemoStatus', [], function (d) { eqcDemoPaint(d); }, function () { var b = document.getElementById('eqc-demo'); if (b) b.hidden = true; }); }
   function eqcDemoDone(msg) { _eqc.items = null; _eqc.ov = null; _eqc.req = null; eqcToast(msg); eqcLoad(); }

@@ -127,7 +127,6 @@
   $('#q').addEventListener('input', function (e) { S.q = e.target.value.trim(); paint(); });
   $('#stForm').addEventListener('submit', function (e) { e.preventDefault(); var f = e.target; checkStatus(f.elements.id.value.trim(), f.elements.phone.value.trim()); });
   // ทางเข้าผู้ดูแล (ซ่อนอยู่ใน "เจ้าหน้าที่" ท้ายหน้า)
-  var adm = $('#adminApp'); if (adm) { if (C.ADMIN_URL) adm.href = C.ADMIN_URL; else adm.hidden = true; }
   var hm = $('#homeLink'); if (hm && C.HOME_URL) hm.href = C.HOME_URL;
   // โหมดตัวอย่าง: ปุ่มเติมเลขคำขอ/เบอร์ตัวอย่างให้ลองหน้า "ติดตามคำขอ"
   if (window.ELC_DEMO && window.ELC_DEMO.active()) {

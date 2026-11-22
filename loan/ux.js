@@ -33,7 +33,7 @@
     var staff = /staff\.html/.test(location.pathname);
     var b = D.createElement('div'); b.id = 'demo-bar'; b.className = 'demo-bar'; b.setAttribute('role', 'status');
     b.innerHTML = '<b>โหมดตัวอย่าง</b><span>ข้อมูลจำลอง ไม่กระทบระบบจริง</span>' +
-      (staff ? '<a href="index.html">ดูหน้าผู้ยืม</a>' : '<a href="staff.html">ดูหน้าเจ้าหน้าที่ (รหัส ' + ELC.pin + ')</a>') +
+      (staff ? '<a href="index.html">ดูหน้าผู้ยืม</a>' : '<a href="staff.html">ดูหน้าเจ้าหน้าที่</a>') +
       '<button type="button" data-demo="reset">รีเซ็ตข้อมูล</button><button type="button" data-demo="exit">ออกจากโหมดตัวอย่าง</button>';
     D.body.insertBefore(b, D.body.firstChild);
     b.addEventListener('click', function (e) {
