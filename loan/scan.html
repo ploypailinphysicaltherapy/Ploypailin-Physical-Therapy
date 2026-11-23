@@ -6,6 +6,9 @@
 <meta name="theme-color" content="#FFFFFF">
 <meta name="robots" content="noindex">
 <title>ข้อมูลครุภัณฑ์</title>
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/brand/favicon-32.png">
+<link rel="apple-touch-icon" href="../assets/brand/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -50,7 +53,7 @@
       ['ตรวจสภาพล่าสุด', a.lastCheckAt ? fd(a.lastCheckAt) + (a.lastCheckResult ? ' · ' + a.lastCheckResult : '') : 'ยังไม่เคยบันทึก'],
       ['ตรวจครั้งถัดไป', a.nextCheckDue ? fd(a.nextCheckDue) + (a.checkDue ? ' (ถึงกำหนดแล้ว)' : '') : '']].filter(function (r) { return r[1]; });
     var staff = window.ELC_API.session(), link = 'staff.html#/asset/' + encodeURIComponent(a.assetId);
-    m.innerHTML = (a.thumb ? '<img class="thumb" src="' + esc(a.thumb) + '" alt="">' : '') + '<p class="no">' + (a.assetNo ? 'เลขครุภัณฑ์ ' + esc(a.assetNo) : 'ยังไม่มีเลขครุภัณฑ์') + '</p><h1>' + esc(a.name) + '</h1>' +
+    m.innerHTML = (a.thumb ? '<img class="thumb" src="' + esc(a.thumb) + '" alt="">' : '<img class="thumb ph" src="../assets/brand/equipment.webp" width="202" height="217" alt="" decoding="async">') + '<p class="no">' + (a.assetNo ? 'เลขครุภัณฑ์ ' + esc(a.assetNo) : 'ยังไม่มีเลขครุภัณฑ์') + '</p><h1>' + esc(a.name) + '</h1>' +
       '<div class="st"><span class="badge ' + cls + '">' + esc(a.status) + '</span></div>' + (ln ? '<div class="big ' + ln[0] + '">' + esc(ln[1]) + '</div>' : '') +
       '<dl class="kv" style="margin-top:14px">' + rows.map(function (r) { return '<dt>' + esc(r[0]) + '</dt><dd>' + esc(r[1]) + '</dd>'; }).join('') + '</dl>' +
       (a.loanState === 'available' || a.loanState === 'onLoan' ? '<a class="btn pri cta" href="index.html?asset=' + encodeURIComponent(a.assetId) + '">ขอยืมอุปกรณ์นี้</a>' : '') +

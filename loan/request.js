@@ -8,6 +8,9 @@
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function fd(iso) { var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(iso || '')); return m ? (+m[3]) + ' ' + MON[+m[2] - 1] + ' ' + (+m[1] + 543) : '-'; }
   function addDays(iso, n) { var p = iso.split('-'); return new Date(Date.UTC(+p[0], +p[1] - 1, +p[2] + n)).toISOString().slice(0, 10); }
+  // รูปแทนเมื่ออุปกรณ์ยังไม่มีรูปถ่าย: ไอคอนแบรนด์ (อัลตราซาวด์ / ตะกร้าอุปกรณ์)
+  var PH = { equipment: [202, 217], ultrasound: [181, 237] };
+  function phImg(a) { var k = /อัลตราซาวด์|ultrasound/i.test(a.name || '') || /เครื่องมือกายภาพ/.test(a.category || '') ? 'ultrasound' : 'equipment'; return '<img class="ph" alt="" loading="lazy" decoding="async" width="' + PH[k][0] + '" height="' + PH[k][1] + '" src="../assets/brand/' + k + '.webp">'; }
   function ic(n, c) { return '<svg class="ico' + (c ? ' ' + c : '') + '" aria-hidden="true"><use href="#i-' + n + '"/></svg>'; }
   function toast(msg, bad) { var t = document.createElement('div'); t.className = 'toast' + (bad ? ' bad' : ''); t.textContent = msg; $('#toasts').appendChild(t); setTimeout(function () { t.remove(); }, bad ? 5000 : 2800); }
   var STATE = { available: ['ok', 'พร้อมให้ยืม'], onLoan: ['acc', 'ถูกยืมอยู่ · จองคิวได้'], overdue: ['warn', 'ยังไม่ได้รับคืน'], unavailable: ['', 'ยังไม่พร้อมให้ยืม'] };
@@ -38,7 +41,7 @@
   function card(a) {
     var st = STATE[a.state] || STATE.unavailable, can = a.state === 'available' || a.state === 'onLoan';
     var sub = [a.category, a.location].filter(Boolean).join(' · ') + (a.state === 'onLoan' && a.dueDate ? ' · คาดว่าคืน ' + fd(a.dueDate) : '');
-    return '<button type="button" class="eq" data-id="' + esc(a.assetId) + '"' + (can ? '' : ' disabled') + '><span class="eq-img">' + (a.thumb ? '<img alt="" loading="lazy" src="' + esc(a.thumb) + '">' : ic('box')) +
+    return '<button type="button" class="eq" data-id="' + esc(a.assetId) + '"' + (can ? '' : ' disabled') + '><span class="eq-img">' + (a.thumb ? '<img alt="" loading="lazy" src="' + esc(a.thumb) + '">' : phImg(a)) +
       '<span class="badge ' + st[0] + '">' + st[1] + '</span></span>' +
       '<span class="eq-b"><span class="badge m-badge ' + st[0] + '">' + st[1] + '</span><span class="no">' + esc(a.assetNo || a.assetId) + '</span><span class="t">' + esc(a.name) + '</span><span class="s">' + esc(sub || '-') + '</span>' +
       '<span class="go"><span>' + (a.pending ? 'มีผู้ขอแล้ว ' + a.pending + ' คำขอ' : can ? 'ขอยืมอุปกรณ์นี้' : 'ยังไม่เปิดให้ยืม') + '</span>' + (can ? '<span class="arr">' + ic('arrow', 'sm') + '</span>' : '') + '</span></span></button>';
@@ -47,7 +50,7 @@
     var q = S.q.toLowerCase(), rows = S.items.filter(function (a) { return (!S.cat || a.category === S.cat) && (!q || [a.assetNo, a.name, a.category, a.location].join(' ').toLowerCase().indexOf(q) >= 0); });
     var ready = S.items.filter(function (a) { return a.state === 'available'; }).length;
     $('#count').textContent = S.items.length ? 'พร้อมให้ยืม ' + ready + ' จาก ' + S.items.length + ' รายการ' + (rows.length !== S.items.length ? ' · แสดง ' + rows.length + ' รายการ' : '') : '';
-    $('#list').innerHTML = rows.length ? '<div class="catalog">' + rows.map(card).join('') + '</div>' : '<div class="empty-st" style="margin-top:16px">' + ic('search') + '<b>' + (S.items.length ? 'ไม่พบอุปกรณ์ที่ตรงกับคำค้น' : 'ยังไม่มีอุปกรณ์ที่เปิดให้ยืม') + '</b><span>' + (S.items.length ? 'ลองค้นด้วยคำอื่น หรือเลือกหมวด "ทั้งหมด"' : 'โปรดกลับมาดูใหม่ หรือโทรสอบถามเจ้าหน้าที่') + '</span></div>';
+    $('#list').innerHTML = rows.length ? '<div class="catalog">' + rows.map(card).join('') + '</div>' : '<div class="empty-st" style="margin-top:16px"><img class="empty-ic mascot" alt="" loading="lazy" decoding="async" width="240" height="384" src="../assets/brand/mascot-sm.webp"><b>' + (S.items.length ? 'ไม่พบอุปกรณ์ที่ตรงกับคำค้น' : 'ยังไม่มีอุปกรณ์ที่เปิดให้ยืม') + '</b><span>' + (S.items.length ? 'ลองค้นด้วยคำอื่น หรือเลือกหมวด "ทั้งหมด"' : 'โปรดกลับมาดูใหม่ หรือโทรสอบถามเจ้าหน้าที่') + '</span></div>';
   }
   function find(id) { return S.items.filter(function (a) { return a.assetId === id; })[0]; }
   function load() {
@@ -62,7 +65,7 @@
     var a = find(id); if (!a) return; var today = S.cfg.today, min = a.state === 'onLoan' && a.dueDate ? addDays(a.dueDate, 1) : today, to = addDays(min, S.cfg.defaultLoanDays || 7);
     lastFocus = document.activeElement;
     dlg.innerHTML = '<form id="rqForm" class="rq" novalidate><h2>ขอยืมอุปกรณ์</h2>' +
-      '<div class="who2"><span class="th">' + (a.thumb ? '<img alt="" src="' + esc(a.thumb) + '">' : ic('box')) + '</span><span><b>' + esc(a.name) + '</b><span>' + esc([a.assetNo, a.location].filter(Boolean).join(' · ')) + (a.state === 'onLoan' && a.dueDate ? ' · ถูกยืมอยู่ถึง ' + fd(a.dueDate) : '') + '</span></span></div>' +
+      '<div class="who2"><span class="th">' + (a.thumb ? '<img alt="" src="' + esc(a.thumb) + '">' : phImg(a)) + '</span><span><b>' + esc(a.name) + '</b><span>' + esc([a.assetNo, a.location].filter(Boolean).join(' · ')) + (a.state === 'onLoan' && a.dueDate ? ' · ถูกยืมอยู่ถึง ' + fd(a.dueDate) : '') + '</span></span></div>' +
       '<div class="fg"><div><label for="fn">ชื่อ <em>*</em></label><input id="fn" name="firstName" type="text" autocomplete="given-name" maxlength="60" required></div>' +
       '<div><label for="ln">นามสกุล <em>*</em></label><input id="ln" name="lastName" type="text" autocomplete="family-name" maxlength="60" required></div>' +
       '<div class="full"><label for="ph">เบอร์โทรศัพท์ <em>*</em></label><input id="ph" name="phone" type="tel" inputmode="numeric" autocomplete="tel" maxlength="12" placeholder="0812345678" required><p class="hint">เจ้าหน้าที่ใช้โทรกลับเมื่ออนุมัติ</p></div>' +
@@ -84,7 +87,7 @@
     });
   }
   function done(r, d) {
-    dlg.innerHTML = '<div class="done" aria-live="polite"><div class="okmark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div><h2>ส่งคำขอเรียบร้อย</h2><p class="hint">กรุณาจดเลขคำขอไว้ ใช้ติดตามสถานะได้ทุกเมื่อ</p><div class="id">' + esc(r.reqId) + '</div>' +
+    dlg.innerHTML = '<div class="done" aria-live="polite"><div class="done-hero"><img alt="" decoding="async" width="240" height="384" src="../assets/brand/mascot-sm.webp"><span class="okmark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span></div><h2>ส่งคำขอเรียบร้อย</h2><p class="hint">กรุณาจดเลขคำขอไว้ ใช้ติดตามสถานะได้ทุกเมื่อ</p><div class="id">' + esc(r.reqId) + '</div>' +
       '<div class="rows"><div><span>อุปกรณ์</span><b>' + esc(r.assetName) + '</b></div><div><span>ผู้ขอ</span><b>' + esc(d.firstName + ' ' + d.lastName) + '</b></div><div><span>ช่วงที่ขอ</span><b>' + fd(d.from) + ' – ' + fd(d.to) + '</b></div><div><span>เจ้าหน้าที่จะโทรกลับ</span><b>' + esc(d.phone) + '</b></div></div>' +
       '<div class="foot"><button class="btn pri" type="button" data-track="' + esc(r.reqId) + '" data-phone="' + esc(d.phone) + '">ติดตามสถานะคำขอ</button><button class="btn" type="button" data-close>เรียบร้อย</button></div></div>';
   }

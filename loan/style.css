@@ -404,3 +404,30 @@ body>main:not(.pub){background:var(--card);border:1px solid var(--border);border
 .login-art::before{display:none}
 .login-art{padding-bottom:96px}
 @media(max-width:820px){.login-art{padding-bottom:28px}}
+
+/* ================= มาสคอต / ไอคอนแบรนด์ (assets/brand/*.webp) =================
+   ทุกรูปมี width/height ในแท็ก (กันหน้ากระตุก) · ใช้ที่ขนาดไม่เกินความละเอียดจริง · ตกแต่งล้วน จึงใช้ alt="" */
+.hero2>div:first-child{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:20px;align-items:end}
+.hero2>div:first-child>h1,.hero2>div:first-child>.lede{grid-column:1}
+.hero2>div:first-child>.flow{grid-column:1/-1}
+.hero-mascot{grid-column:2;grid-row:1/3;height:200px;width:auto;margin-bottom:-6px;filter:drop-shadow(0 10px 14px rgba(122,36,64,.12))}
+@media(max-width:560px){.hero-mascot{height:116px}.hero2>div:first-child{column-gap:10px}}
+.eq-img img.ph{width:auto;height:74%;max-width:70%;object-fit:contain;filter:drop-shadow(0 4px 6px rgba(122,36,64,.12))}
+.eq-img:has(img.ph){background:linear-gradient(180deg,var(--primary-soft),#fff 140%)}
+.th img.ph{width:100%;height:100%;object-fit:contain;padding:3px}
+.empty-ic{display:block;height:84px;width:auto;margin:0 auto 6px;object-fit:contain}
+.empty-ic.mascot{height:132px}
+.done-hero{position:relative;width:max-content;margin:0 auto 10px}
+.done-hero img{display:block;height:132px;width:auto}
+.done-hero .okmark{position:absolute;right:-20px;bottom:8px;width:42px;height:42px;margin:0;border:3px solid var(--card)}
+.done-hero .okmark svg{width:22px;height:22px}
+.login-art .login-mascot{align-self:center;height:min(44vh,380px);width:auto;margin-bottom:14px;filter:drop-shadow(0 12px 18px rgba(122,36,64,.14))}
+@media(max-width:820px){.login-art .login-mascot{display:none}}
+.thumb.ph{object-fit:contain;padding:8px;background:var(--primary-soft);border-color:transparent}
+/* ปรับรอบ 2: มาสคอตใน hero ไม่ดันความสูงแถว + ไอคอนในการ์ดไม่ถูกตัด */
+.hero-mascot{grid-row:1/3;align-self:end;height:196px;margin:-44px 0 0}
+@media(max-width:560px){
+  .hero2>div:first-child>h1{grid-column:1/-1}
+  .hero-mascot{grid-row:2/3;height:104px;margin:-18px 0 0}
+}
+.eq-img img.ph{width:clamp(52px,38%,84px);height:auto;max-width:none;margin-top:24px}
