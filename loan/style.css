@@ -1,24 +1,26 @@
-/* ศูนย์ยืม-คืนอุปกรณ์ — PT Station
+/* ศูนย์ยืม-คืนอุปกรณ์ — PT Station · V34 ปรับเป็นภาษาภาพแบบ controlall (indigo + zinc · ขอบบาง · Prompt · ปุ่มมุม 8px) และเน้นใช้งานบนมือถือ
+   (ส่วนท้ายไฟล์ "V34" คือชั้นปรับรูปทรงทับของเดิม)
+   ของเดิม: PT Station
    ภาษาภาพเดียวกับหน้า landing (Sarabun · มุมโค้งใหญ่ · ปุ่มทรงแคปซูล · เงานุ่ม · แถบหลังคาจั่ว · แถบเมนูลอย)
    ใช้พาเลตเดียวกับ landing (ชมพูกุหลาบ #d6577e / #b23a63 / #9c2f52 พื้นครีม #fdf6f4 ตัวอักษร #2a2530) ให้ทุกหน้ากลมกลืนเป็นเว็บเดียวกัน
    token ตั้งชื่อแบบ shadcn — เปลี่ยนสีทั้งระบบที่บล็อก :root นี้ที่เดียว */
 :root{
-  --background:#ffffff;--foreground:#26212a;
-  --card:#fff;--card-foreground:#2a2530;
-  --muted:#f6f3f4;--muted-foreground:#645a60;
-  --border:#ebe5e8;--input:#d9cfd4;
-  --primary:#b23a63;--primary-dark:#7a2440;--primary-foreground:#fff;--primary-soft:#fdf0f3;
-  --ring:#d6577e;
-  --ok:#0b6b3a;--ok-soft:#e1f3e8;--warn:#8a5a00;--warn-soft:#fbefd2;--bad:#b42318;--bad-soft:#fde7e4;
-  --r-sm:8px;--r-md:14px;--r-lg:22px;
-  --shadow:0 6px 24px rgba(38,33,42,.07);--shadow-lg:0 24px 60px -18px rgba(38,33,42,.28);
+  --background:#fafafa;--foreground:#18181b;
+  --card:#fff;--card-foreground:#18181b;
+  --muted:#f4f4f5;--muted-foreground:#52525b;
+  --border:#e8e8ec;--input:#d4d4d8;
+  --primary:#4f46e5;--primary-dark:#4338ca;--primary-foreground:#fff;--primary-soft:#eef2ff;
+  --ring:#6366f1;
+  --ok:#047857;--ok-soft:#ecfdf5;--warn:#b45309;--warn-soft:#fffbeb;--bad:#be123c;--bad-soft:#fff1f2;
+  --r-sm:6px;--r-md:8px;--r-lg:12px;
+  --shadow:0 8px 24px -12px rgba(15,23,42,.16);--shadow-lg:0 18px 40px -12px rgba(15,23,42,.26);
   --ease:cubic-bezier(.22,1,.36,1);
-  --font:"Sarabun","Noto Sans Thai",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font:"Prompt","Inter","Sarabun","Noto Sans Thai",system-ui,-apple-system,"Segoe UI",sans-serif;
   --nav-w:248px;color-scheme:light;
   /* ชื่อเดิมที่โค้ดหน้าผู้ดูแลยังใช้ — ชี้ไปที่ token ใหม่ */
   --bg:var(--background);--surface:var(--card);--ink:var(--foreground);--ink2:var(--muted-foreground);
   --line:var(--border);--line2:var(--input);--link:var(--primary);--accent:var(--primary);--accent-ink:var(--primary-foreground);
-  --accent-soft:var(--primary-soft);--off:#5f5459;--off-soft:var(--muted);--r:var(--r-sm);--rc:var(--r-md);
+  --accent-soft:var(--primary-soft);--off:#52525b;--off-soft:var(--muted);--r:var(--r-sm);--rc:var(--r-md);
 }
 
 *{box-sizing:border-box}
@@ -186,7 +188,7 @@ details.more summary{cursor:pointer;font-weight:600;padding:8px 0;min-height:44p
 /* ---------- เข้าสู่ระบบผู้ดูแล (แบ่งสองฝั่ง) ---------- */
 .login{min-height:100vh;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);background:var(--card)}
 .login-art{position:relative;display:flex;flex-direction:column;justify-content:flex-end;gap:10px;padding:40px 40px 76px;color:var(--foreground);overflow:hidden;background:linear-gradient(160deg,#fff 0%,var(--primary-soft) 100%);border-right:1px solid var(--border)}
-.login-art::before{content:"";position:absolute;inset:0;background-image:linear-gradient(135deg,rgba(178,58,99,.06) 25%,transparent 25%),linear-gradient(225deg,rgba(178,58,99,.06) 25%,transparent 25%);background-size:44px 18px;background-position:0 0,22px 0;mask-image:linear-gradient(180deg,#000,transparent 70%)}
+.login-art::before{content:"";position:absolute;inset:0;background-image:linear-gradient(135deg,rgba(79,70,229,.06) 25%,transparent 25%),linear-gradient(225deg,rgba(79,70,229,.06) 25%,transparent 25%);background-size:44px 18px;background-position:0 0,22px 0;mask-image:linear-gradient(180deg,#000,transparent 70%)}
 .login-art>*{position:relative}
 .login-art .back{position:absolute;top:24px;left:24px;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;color:var(--primary);background:#fff;border:1px solid var(--border);backdrop-filter:blur(6px);text-decoration:none;transition:background .18s}
 .login-art .back:hover{background:var(--primary-soft)}
@@ -206,7 +208,7 @@ details.more summary{cursor:pointer;font-weight:600;padding:8px 0;min-height:44p
 dialog{padding:0;max-width:min(92vw,560px);width:100%;box-shadow:var(--shadow-lg)}
 dialog[open]{animation:pop .24s var(--ease)}
 @keyframes pop{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}
-dialog::backdrop{background:rgba(42,20,30,.6);backdrop-filter:blur(3px)}
+dialog::backdrop{background:rgba(9,9,11,.5);backdrop-filter:blur(3px)}
 dialog img{display:block;max-width:100%;max-height:82vh}
 .loading{padding:40px 0;text-align:center;color:var(--muted-foreground)}
 .skel{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
@@ -246,7 +248,7 @@ dialog img{display:block;max-width:100%;max-height:82vh}
 .seg{display:inline-flex;gap:4px;padding:5px;background:var(--muted);border-radius:999px;margin-bottom:20px}
 .seg button{min-height:42px;padding:0 22px;border:0;border-radius:999px;background:transparent;font-weight:600;cursor:pointer;color:var(--muted-foreground);display:inline-flex;align-items:center;gap:8px;transition:background .18s,color .18s,box-shadow .18s}
 .seg button:hover{color:var(--foreground)}
-.seg button[aria-selected=true]{background:var(--card);color:var(--primary-dark);box-shadow:0 2px 8px rgba(42,37,48,.12)}
+.seg button[aria-selected=true]{background:var(--card);color:var(--primary-dark);box-shadow:0 2px 8px rgba(15,23,42,.10)}
 .seg .n{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 6px;border-radius:99px;background:var(--primary-soft);color:var(--primary-dark);font-size:.8125rem}
 .pane{animation:rise .3s var(--ease)}
 .pane>.hint.top{margin:0 0 14px}
@@ -259,7 +261,7 @@ dialog img{display:block;max-width:100%;max-height:82vh}
 .eq-img{position:relative;aspect-ratio:16/9;background:var(--primary-soft);color:var(--primary);display:grid;place-items:center;overflow:hidden}
 .eq-img img{width:100%;height:100%;object-fit:cover;display:block}
 .eq-img .ico{width:44px;height:44px;stroke-width:1.4}
-.eq-img .badge{position:absolute;top:12px;left:12px;background:var(--card);box-shadow:0 2px 8px rgba(42,37,48,.14)}
+.eq-img .badge{position:absolute;top:12px;left:12px;background:var(--card);box-shadow:0 2px 8px rgba(15,23,42,.12)}
 .eq-b{display:flex;flex-direction:column;gap:2px;padding:14px 16px 16px;flex:1}
 .eq-b .no{font-size:.8125rem;font-weight:600;color:var(--primary)}
 .eq-b .t{font-weight:700;line-height:1.35;overflow-wrap:anywhere}
@@ -410,9 +412,9 @@ body>main:not(.pub){background:var(--card);border:1px solid var(--border);border
 .hero2>div:first-child{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:20px;align-items:end}
 .hero2>div:first-child>h1,.hero2>div:first-child>.lede{grid-column:1}
 .hero2>div:first-child>.flow{grid-column:1/-1}
-.hero-mascot{grid-column:2;grid-row:1/3;height:200px;width:auto;margin-bottom:-6px;filter:drop-shadow(0 10px 14px rgba(122,36,64,.12))}
+.hero-mascot{grid-column:2;grid-row:1/3;height:200px;width:auto;margin-bottom:-6px;filter:drop-shadow(0 10px 14px rgba(15,23,42,.14))}
 @media(max-width:560px){.hero-mascot{height:116px}.hero2>div:first-child{column-gap:10px}}
-.eq-img img.ph{width:auto;height:74%;max-width:70%;object-fit:contain;filter:drop-shadow(0 4px 6px rgba(122,36,64,.12))}
+.eq-img img.ph{width:auto;height:74%;max-width:70%;object-fit:contain;filter:drop-shadow(0 4px 6px rgba(15,23,42,.14))}
 .eq-img:has(img.ph){background:linear-gradient(180deg,var(--primary-soft),#fff 140%)}
 .th img.ph{width:100%;height:100%;object-fit:contain;padding:3px}
 .empty-ic{display:block;height:84px;width:auto;margin:0 auto 6px;object-fit:contain}
@@ -421,7 +423,7 @@ body>main:not(.pub){background:var(--card);border:1px solid var(--border);border
 .done-hero img{display:block;height:132px;width:auto}
 .done-hero .okmark{position:absolute;right:-20px;bottom:8px;width:42px;height:42px;margin:0;border:3px solid var(--card)}
 .done-hero .okmark svg{width:22px;height:22px}
-.login-art .login-mascot{align-self:center;height:min(44vh,380px);width:auto;margin-bottom:14px;filter:drop-shadow(0 12px 18px rgba(122,36,64,.14))}
+.login-art .login-mascot{align-self:center;height:min(44vh,380px);width:auto;margin-bottom:14px;filter:drop-shadow(0 12px 18px rgba(15,23,42,.16))}
 @media(max-width:820px){.login-art .login-mascot{display:none}}
 .thumb.ph{object-fit:contain;padding:8px;background:var(--primary-soft);border-color:transparent}
 /* ปรับรอบ 2: มาสคอตใน hero ไม่ดันความสูงแถว + ไอคอนในการ์ดไม่ถูกตัด */
@@ -431,3 +433,134 @@ body>main:not(.pub){background:var(--card);border:1px solid var(--border);border
   .hero-mascot{grid-row:2/3;height:104px;margin:-18px 0 0}
 }
 .eq-img img.ph{width:clamp(52px,38%,84px);height:auto;max-width:none;margin-top:24px}
+
+
+/* =====================================================================
+   V34 · ชั้นปรับรูปทรงตามต้นแบบ controlall + มือถือ
+   หลักการ: เส้นขอบบาง 1px · มุม 8/12px (ไม่ใช้ปุ่มแคปซูล) · ไม่มีเงา/ยกตัวตอน hover · ตัวหนังสือ Prompt น้ำหนัก 500/600
+   มือถือ: พื้นที่แตะ ≥ 44px · ช่องกรอก 16px (iOS ไม่ซูมเอง) · แถบเมนูล่าง · ปุ่มยืนยันติดขอบล่างของแผ่นฟอร์ม · ใช้ safe-area
+   ===================================================================== */
+html{-webkit-tap-highlight-color:transparent}
+body{font-size:.9375rem;line-height:1.6;font-feature-settings:"cv02","cv03","cv04","cv11";-webkit-font-smoothing:antialiased;overflow-wrap:anywhere}
+button,a,summary,label,select,input{touch-action:manipulation}
+h1,h2,h3{font-weight:600;letter-spacing:-.01em}
+h1{font-size:clamp(1.375rem,1.1rem + 1.2vw,1.875rem);letter-spacing:-.02em}
+h2{font-size:1.0625rem}
+.roofline{height:3px;background:var(--primary);background-image:none}
+
+/* ปุ่ม */
+.btn{min-height:40px;padding:8px 16px;border:1px solid var(--input);border-radius:8px;font-weight:500;font-size:.875rem;transition:background .15s,border-color .15s,color .15s}
+.btn:hover{background:var(--muted)}.btn:active{transform:none;background:var(--border)}
+.btn.pri{box-shadow:none;border-color:var(--primary)}
+.btn.pri:hover{transform:none;background:var(--primary-dark);border-color:var(--primary-dark)}
+.btn.pri:active{background:#3730a3}
+.btn.dng{border-color:color-mix(in srgb,var(--bad) 35%,transparent)}
+.btn.sm{min-height:34px;padding:0 12px;font-size:.8125rem}
+.btn:focus-visible,.chip:focus-visible,.seg button:focus-visible{outline:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--ring) 30%,transparent)}
+:focus-visible{outline:2px solid var(--ring);outline-offset:2px}
+
+/* ฟอร์ม */
+label{font-size:.8125rem;font-weight:500;color:var(--muted-foreground)}
+input[type=text],input[type=search],input[type=password],input[type=number],input[type=date],input[type=tel],select,textarea{min-height:42px;padding:8px 12px;border:1px solid var(--input);border-radius:8px;font-size:.875rem}
+input:focus,select:focus,textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px color-mix(in srgb,var(--ring) 22%,transparent)}
+.radios label{border-width:1px;border-radius:8px;min-height:42px;font-weight:500}
+.radios label:has(input:checked){border-color:var(--primary)}
+.err{border-radius:8px;font-weight:500;font-size:.875rem}
+
+/* ชิป / แท็บแบบแบ่งส่วน / ป้าย */
+.chip{min-height:36px;padding:0 14px;border-width:1px;border-radius:8px;font-weight:500;font-size:.8125rem}
+.seg{border-radius:10px;padding:4px;gap:2px}
+.seg button{min-height:38px;padding:0 18px;border-radius:8px;font-weight:500;font-size:.875rem}
+.seg button[aria-selected=true]{box-shadow:0 1px 2px rgba(15,23,42,.08);color:var(--primary-dark)}
+.badge{padding:1px 9px;font-size:.75rem;font-weight:500;border:1px solid color-mix(in srgb,currentColor 22%,transparent)}
+.badge::before{width:6px;height:6px}
+.cnt{border-radius:99px;font-size:.75rem;font-weight:600}
+
+/* การ์ด / รายการ / สรุป */
+.main,dialog,.card,.sheet{border-radius:12px}
+.card,.sum,.list,.openbox,.qrbox,.panel{box-shadow:none}
+.panel{border-width:1px;border-radius:12px}
+.sum b{font-size:1.5rem;font-weight:600;letter-spacing:-.02em}
+.sum span{font-size:.8125rem}
+.li{padding:12px 16px}
+.li .th{border-radius:8px}
+.li .no,.hd .no,.eq-b .no{font-size:.75rem}
+.eq{border-radius:12px}
+.eq:hover:not([disabled]){transform:none;box-shadow:var(--shadow);border-color:var(--input)}
+.eq .go .arr{border-radius:8px}
+.eq-img{background:var(--primary-soft)}
+.eq-img:has(img.ph){background:linear-gradient(180deg,var(--primary-soft),#fff 140%)}
+.toast{border-radius:10px;font-weight:500;font-size:.875rem}
+dialog{box-shadow:var(--shadow-lg)}
+
+/* เมนูผู้ดูแล (ซ้าย) */
+.brand .mk{width:34px;height:34px;border-radius:8px}
+.nav h2{font-size:.6875rem;letter-spacing:.06em;font-weight:600}
+.nav a{min-height:40px;border-radius:8px;font-weight:500;font-size:.875rem}
+.nav a[aria-current=page]{color:var(--primary-dark)}
+
+/* แถบบนหน้าขอยืม: เปลี่ยนจากแคปซูลลอย เป็นแถบเต็มความกว้างเส้นบาง */
+.tb{top:0;margin-top:0;padding:0}
+.tb-in{max-width:none;height:56px;border-radius:0;border:0;border-bottom:1px solid var(--border);box-shadow:none;background:color-mix(in srgb,var(--card) 90%,transparent);padding:0 max(16px,calc((100% - 1120px)/2 + 16px))}
+.tb .mk{width:34px;height:34px;border-radius:8px}
+.tb .bt b{font-size:.9375rem;font-weight:600}
+.tb-nav a{min-height:36px;border-radius:8px;font-weight:500;font-size:.875rem}
+.tb-r .tel{width:36px;height:36px;border-radius:8px}
+
+/* หน้าเข้าสู่ระบบ */
+.login .mk{border-radius:10px}
+.login-art{background:linear-gradient(160deg,#fff 0%,var(--primary-soft) 100%)}
+
+/* ขั้นตอนติดตามสถานะ */
+.pipe .dot{border-width:2px}
+.pipe li{font-weight:500}
+.done .id{border-width:1px;border-radius:8px}
+
+/* ----- มือถือ ----- */
+@media(max-width:899px){
+  .side{background:color-mix(in srgb,var(--card) 94%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);box-shadow:0 -6px 20px -12px rgba(15,23,42,.18)}
+  .nav a{min-height:54px;gap:3px;font-size:.6875rem;font-weight:500;border-radius:10px}
+  .nav a .ico{width:22px;height:22px}
+  .top{background:color-mix(in srgb,var(--card) 92%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+}
+@media(max-width:600px){
+  body{font-size:1rem}
+  input[type=text],input[type=search],input[type=password],input[type=number],input[type=date],input[type=tel],select,textarea{min-height:46px;font-size:16px}
+  .btn{min-height:46px;font-size:.9375rem}
+  .btn.sm{min-height:40px}
+  .chip{min-height:40px}
+  .seg{display:flex;width:100%}.seg button{flex:1;justify-content:center;padding:0 8px}
+  .radios label{flex:1 1 auto;justify-content:center}
+  .chips{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin-inline:-16px;padding-inline:16px}
+  .chips::-webkit-scrollbar{display:none}.chip{flex:none}
+  .tools .q{min-width:100%}
+  .acts{width:100%}.acts .btn{flex:1 1 auto}
+  .ph{margin-bottom:16px}
+  .sum{grid-template-columns:1fr 1fr}
+  .sum div{padding:12px 14px;border-left:0;border-top:1px solid var(--border)}
+  .sum div:nth-child(-n+2){border-top:0}.sum div:nth-child(even){border-left:1px solid var(--border)}
+  .sum b{font-size:1.375rem}
+  .li{padding:12px 14px;gap:12px}
+  .li .th{width:44px;height:44px}
+  .bar{margin:14px 0}.bar .btn{flex:1 1 calc(50% - 8px)}
+  .panel{padding:16px}
+  .hd .qrbox{width:100%}
+  .tb-in{height:52px}
+  .pub{padding:20px 16px calc(28px + env(safe-area-inset-bottom))}
+  .hero2{gap:16px;margin-bottom:20px}
+  .hero2 .lede{font-size:.9375rem}
+  /* แผ่นฟอร์มจากขอบล่าง: ปุ่มยืนยันติดขอบ เห็นตลอดแม้ฟอร์มยาว */
+  dialog{border-width:1px 0 0;box-shadow:0 -12px 40px -12px rgba(15,23,42,.35)}
+  dialog .foot,.rq .foot,.panel .foot{position:sticky;bottom:0;z-index:2;margin:16px -18px 0;padding:12px 18px calc(12px + env(safe-area-inset-bottom));background:var(--card);border-top:1px solid var(--border)}
+  dialog .foot .btn,.rq .foot .btn{flex:1 1 auto}
+  .panel .foot{margin:16px -16px -16px;padding:12px 16px}
+  .toast{border-radius:10px}
+  .tl li{padding:12px 0}
+  dl.kv{grid-template-columns:1fr}
+  dl.kv dt{border-bottom:0;padding:10px 0 0;font-size:.8125rem}
+  dl.kv dd{padding:2px 0 10px}
+  .login-form{padding:24px 16px}
+  .scanbox{max-width:none;border-radius:12px}
+}
+@media(hover:none){.eq:hover:not([disabled]){box-shadow:none}.btn:hover{background:var(--card)}.btn.pri:hover{background:var(--primary)}}
+@media(pointer:coarse){.btn{min-height:44px}.btn.sm{min-height:40px}.chip{min-height:40px}.nav a,.tb-nav a{min-height:44px}}
