@@ -82,7 +82,7 @@ function loanRow(l) {
   var late = (l.overdue || l.daysLate > 0) ? '<span class="badge bad">เกินกำหนด ' + l.daysLate + ' วัน</span>' : (l.daysLeft != null && l.daysLeft <= 2 ? '<span class="badge warn">ครบกำหนด' + (l.daysLeft === 0 ? 'วันนี้' : 'ใน ' + l.daysLeft + ' วัน') + '</span>' : '');
   var tel = l.phone ? ' · <a href="tel:' + esc(String(l.phone).replace(/[^0-9+]/g, '')) + '">' + esc(l.phone) + '</a>' : '';
   return '<div class="li noth"><div class="mn"><div class="t">' + esc((l.assetNo ? l.assetNo + ' · ' : '') + (l.assetName || '')) + '</div><div class="s">' + esc(l.borrowerName) + (l.borrowerType ? ' (' + esc(l.borrowerType) + ')' : '') + tel + ' · คืนภายใน ' + esc(fmtDate(l.dueDate)) + '</div></div><div class="end">' + late +
-    '<a class="btn sm pri" href="#/asset/' + esc(l.assetId) + '/return">รับคืน</a><a class="btn sm" href="#/asset/' + esc(l.assetId) + '/extend">ต่อกำหนด</a></div></div>';
+    '<a class="btn sm pri" href="#/asset/' + esc(l.assetId) + '/return">รับคืน</a><a class="btn sm" href="#/asset/' + esc(l.assetId) + '/extend">ต่อกำหนด</a><button class="btn sm" data-do="printLoan" data-id="' + esc(l.loanId) + '" aria-label="พิมพ์ใบยืม" title="พิมพ์ใบยืม">' + icon('print') + '</button></div></div>';
 }
 function listOrEmpty(rows, msg) { return rows.length ? '<div class="list">' + rows.join('') + '</div>' : '<div class="list"><div class="empty">' + esc(msg) + '</div></div>'; }
 
@@ -91,28 +91,41 @@ function renderLogin(msg) {
   var name = ''; try { name = localStorage.getItem('elc.name') || ''; } catch (e) {}
   // โหมดตัวอย่าง (เข้าได้เฉพาะหลังล็อกอินจริง): เข้าระบบจำลองให้อัตโนมัติ ไม่ต้องกรอกรหัส
   if (API.demo) { API.login(name || 'เจ้าหน้าที่', window.ELC_DEMO.pin).then(function () { S.cfg = null; invalidate(); route(); }).catch(function (x) { $('#root').innerHTML = '<p class="loading">' + esc(x.message) + '</p>'; }); return; }
-  $('#root').innerHTML = '<div class="login"><aside class="login-art"><a class="back" href="index.html" aria-label="กลับหน้าขอยืมอุปกรณ์">' + icon('back') + '</a><img class="login-mascot" alt="" decoding="async" width="422" height="676" src="../assets/brand/mascot.webp"><h2>' + esc(C.ORG_NAME) + '</h2><p>' + esc(C.ORG_SUB || '') + ' · ทะเบียนครุภัณฑ์ ยืม-คืน ตรวจสภาพ และป้าย QR สำหรับเจ้าหน้าที่</p></aside>' +
-    '<div class="login-form"><form id="loginForm" autocomplete="on"><div class="mk">' + icon('box') + '</div><div><h1>เข้าสู่ระบบผู้ดูแล</h1><p class="hint">' + esc(C.ORG_SUB || '') + ' · สำหรับเจ้าหน้าที่เท่านั้น</p></div>' +
+  $('#root').innerHTML = '<div class="login"><aside class="login-art"><canvas class="dotmap" aria-hidden="true"></canvas><a class="back" href="index.html" aria-label="กลับหน้าขอยืมอุปกรณ์">' + icon('back') + '</a><img class="login-mascot" alt="" decoding="async" width="422" height="676" src="../assets/brand/mascot.webp"><h2>' + esc(C.ORG_NAME) + '</h2><p>' + esc(C.ORG_SUB || '') + ' · ทะเบียนครุภัณฑ์ ยืม-คืน ตรวจสภาพ และป้าย QR สำหรับเจ้าหน้าที่</p></aside>' +
+    '<div class="login-form"><form id="loginForm" class="lf" autocomplete="on"><div class="mk">' + icon('box') + '</div><div><h1>เข้าสู่ระบบผู้ดูแล</h1><p class="hint">' + esc(C.ORG_SUB || '') + ' · สำหรับเจ้าหน้าที่เท่านั้น</p></div>' +
+    // สแกน QR ดูข้อมูลอุปกรณ์ได้ทันที ไม่ต้องล็อกอิน (ตำแหน่งเดียวกับปุ่มทางลัดของการ์ดเข้าสู่ระบบต้นแบบ)
+    '<a class="scanbtn" href="scan.html"><img alt="" width="175" height="179" src="../assets/brand/qr-scan.webp"><span><b>สแกน QR ดูข้อมูลอุปกรณ์</b><small>ไม่ต้องเข้าสู่ระบบ — ดูว่านี่คืออะไร สถานะเป็นอย่างไร มีรายละเอียดอะไรบ้าง</small></span><span class="go">' + icon('arrow') + '</span></a>' +
+    '<div class="or"><span>หรือเข้าสู่ระบบเจ้าหน้าที่</span></div>' +
     '<div><label for="ln">ชื่อผู้ใช้งาน <em>*</em></label><input id="ln" name="name" type="text" autocomplete="name" required minlength="2" maxlength="60" placeholder="ชื่อ-สกุล หรือชื่อเล่น" value="' + esc(name) + '"><p class="hint">ใช้บันทึกว่าใครเป็นผู้ทำรายการ</p></div>' +
-    '<div><label for="lp">รหัสผ่าน <em>*</em></label><input id="lp" name="pin" type="password" autocomplete="current-password" required></div>' +
-    '<p class="err" role="alert" id="loginErr" ' + (msg ? '' : 'hidden') + '>' + esc(msg || '') + '</p><button class="btn pri" type="submit">เข้าสู่ระบบ</button>' +
+    '<div><label for="lp">รหัสผ่าน <em>*</em></label><div class="pw"><input id="lp" name="pin" type="password" autocomplete="current-password" required><button class="eye" type="button" id="lpEye" aria-label="แสดงรหัสผ่าน" aria-pressed="false">' + icon('eye') + '</button></div></div>' +
+    '<p class="err" role="alert" id="loginErr" ' + (msg ? '' : 'hidden') + '>' + esc(msg || '') + '</p><button class="btn pri" type="submit"><span>เข้าสู่ระบบ</span>' + icon('arrow').replace('class="ico"', 'class="ico arr"') + '</button>' +
     '<a class="btn ghost" href="index.html">กลับไปหน้าขอยืมอุปกรณ์</a></form></div></div>';
+  if (window.ELC_DOTMAP) window.ELC_DOTMAP.mount($('.dotmap'));
+  $('#lpEye').addEventListener('click', function () {
+    var i = $('#lp'), show = i.type === 'password'; i.type = show ? 'text' : 'password';
+    this.setAttribute('aria-pressed', String(show)); this.setAttribute('aria-label', show ? 'ซ่อนรหัสผ่าน' : 'แสดงรหัสผ่าน'); this.innerHTML = icon(show ? 'eyeoff' : 'eye'); i.focus();
+  });
   var f = $('#loginForm');
   f.addEventListener('submit', function (e) {
-    e.preventDefault(); var b = f.querySelector('button'), er = $('#loginErr'); b.disabled = true; b.classList.add('busy'); er.hidden = true;
+    e.preventDefault(); var b = f.querySelector('button[type=submit]'), er = $('#loginErr'); b.disabled = true; b.classList.add('busy'); er.hidden = true;
     API.login(f.elements.name.value, f.elements.pin.value).then(function () { try { localStorage.setItem('elc.name', f.elements.name.value.trim()); } catch (x) {} S.cfg = null; invalidate(); var h = location.hash; goto(h && h.length > 2 ? h : '#/'); })
       .catch(function (x) { er.textContent = x.message; er.hidden = false; f.elements.pin.value = ''; f.elements.pin.focus(); })
       .then(function () { b.disabled = false; b.classList.remove('busy'); });
   });
   (name ? f.elements.pin : f.elements.name).focus();
 }
-var NAV = [['', 'home', 'ภาพรวม', 'หลัก'], ['assets', 'box', 'ครุภัณฑ์', 'ทะเบียน'], ['loans', 'swap', 'ยืม-คืน', 'ทะเบียน'], ['scan', 'scan', 'สแกน', 'เครื่องมือ'], ['print', 'qr', 'พิมพ์ QR', 'เครื่องมือ'], ['log', 'log', 'ประวัติ', 'เครื่องมือ']];
+var NAV = [['', 'home', 'ภาพรวม', 'หลัก'], ['assets', 'box', 'ครุภัณฑ์', 'ทะเบียน'], ['loans', 'swap', 'ยืม-คืน', 'ทะเบียน'], ['scan', 'scan', 'สแกน', 'เครื่องมือ'], ['print', 'qr', 'พิมพ์ QR', 'เครื่องมือ'], ['log', 'log', 'ประวัติ', 'เครื่องมือ'], ['reports', 'chart', 'รายงาน / Excel', 'รายงาน'], ['calendar', 'cal', 'ปฏิทินการยืม', 'รายงาน']];
 function navHtml() { var g = '', h = ''; NAV.forEach(function (n) { if (n[3] !== g) { g = n[3]; h += '<h2>' + g + '</h2>'; } h += '<a href="#/' + n[0] + '" data-nav="' + n[0] + '">' + icon(n[1]) + '<span>' + n[2] + '</span></a>'; }); return h; }
+function topBtns(side) {
+  return '<button class="btn sm tbtn' + (side ? ' wide' : '') + '" data-do="search" aria-label="ค้นหา (กด / )" title="ค้นหา ( / )">' + icon('search') + (side ? '<span>ค้นหา</span><kbd>/</kbd>' : '') + '</button>' +
+    '<button class="btn sm tbtn" data-do="bell" aria-label="การแจ้งเตือน" title="การแจ้งเตือน">' + icon('bell') + '<span class="bdg" hidden></span></button>';
+}
 function shell() {
   if ($('#view')) return;
   var s = S.sess;
-  $('#root').innerHTML = '<div class="top"><div><b>' + esc(C.ORG_NAME) + '</b><br><span>' + esc(s.name) + ' · ผู้ดูแล' + '</span></div><button class="btn sm" data-do="logout" aria-label="ออกจากระบบ">' + icon('out') + '</button></div>' +
+  $('#root').innerHTML = '<div class="top"><div><b>' + esc(C.ORG_NAME) + '</b><br><span>' + esc(s.name) + ' · ผู้ดูแล' + '</span></div><div class="tact">' + topBtns() + '<button class="btn sm" data-do="logout" aria-label="ออกจากระบบ">' + icon('out') + '</button></div></div>' +
     '<div class="app"><aside class="side"><div class="brand"><span class="mk">' + icon('box') + '</span><span>' + esc(C.ORG_NAME) + '<small>' + esc(C.ORG_SUB || '') + '</small></span></div>' +
+    '<div class="tside">' + topBtns(true) + '</div>' +
     '<nav class="nav" aria-label="เมนูหลัก">' + navHtml() + '</nav>' +
     '<div class="who"><b>' + esc(s.name) + '</b>' + 'ผู้ดูแลระบบ' + '<br><a href="index.html">หน้าขอยืม (ผู้ใช้ทั่วไป)</a>' + (API.demo ? '' : '<br><button class="btn sm ghost" data-do="demoOn">' + icon('check') + 'โหมดตัวอย่าง</button>') + (C.HOME_URL ? '<br><a href="' + esc(C.HOME_URL) + '">กลับระบบหลัก</a>' : '') + '<br><button class="btn sm" data-do="logout">' + icon('out') + 'ออกจากระบบ</button></div></aside>' +
     '<main class="main" id="view" tabindex="-1"></main></div>';
@@ -124,6 +137,7 @@ function markNav(key) {
 // ---------- ภาพรวม ----------
 function viewDash(id) {
   API.call('dashboard').then(function (d) {
+    S.dash = { ts: Date.now(), d: d }; paintBell();
     if (id !== navId) return;
     var h = '<div class="ph"><div><h1>ภาพรวมวันนี้</h1><p>' + esc(fmtDate(d.today)) + '</p></div><div class="acts"><a class="btn" href="#/scan">' + icon('scan') + 'สแกน QR</a><a class="btn pri" href="#/asset/new">' + icon('plus') + 'เพิ่มครุภัณฑ์</a></div></div>';
     h += '<div class="sum"><div><b>' + d.total + '</b><span>รายการทั้งหมด</span></div><div><b>' + d.available + '</b><span>พร้อมให้ยืม</span></div><div><b>' + d.onLoan + '</b><span>กำลังถูกยืม</span></div><div><b>' + d.broken + '</b><span>ชำรุด / ซ่อม</span></div></div>';
@@ -487,6 +501,9 @@ document.addEventListener('click', function (e) {
     case 'logout': if (API.demo) { try { var rs = JSON.parse(localStorage.getItem('elc.session') || 'null'); if (rs && C.API_URL) fetch(C.API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: 'logout', token: rs.token, args: {} }) }).catch(function () {}); localStorage.removeItem('elc.session'); } catch (e) {} window.ELC_DEMO.exit(); break; }
       API.logout().then(function () { S.sess = null; S.cfg = null; invalidate(); $('#root').innerHTML = ''; renderLogin(); }); break;
     case 'reload': route(); break;
+    case 'search': openSearch(); break;
+    case 'bell': openBell(); break;
+    case 'printLoan': withRpt(function (R) { R.printLoan(el.dataset.id, el); }); break;
     case 'photo': pickPhoto(id); break;
     case 'printOne': S.preselect = [id]; goto('#/print'); break;
     case 'qrmake': el.disabled = true; el.classList.add('busy'); genQr([id], false).then(function (r) { toast(r.fail ? 'สร้าง QR ไม่สำเร็จ' + (r.err ? ' — ' + r.err : '') : 'สร้าง QR แล้ว และบันทึกลงชีตแล้ว', !!r.fail); invalidate(); route(); }); break;
@@ -511,6 +528,78 @@ document.addEventListener('input', function (e) {
 document.addEventListener('change', function (e) { if (e.target.closest && e.target.closest('#psel')) countSel(); });
 window.addEventListener('elc:auth', function () { S.sess = null; S.cfg = null; invalidate(); $('#root').innerHTML = ''; renderLogin('หมดเวลาการใช้งาน กรุณาเข้าสู่ระบบใหม่'); });
 
+// ---------- V38: โหลดโมดูลรายงาน/ปฏิทินเมื่อใช้งานเท่านั้น (ไม่หน่วงหน้าแรก) ----------
+var rptP = null;
+function withRpt(fn) {
+  if (window.ELC_RPT) return fn(window.ELC_RPT);
+  if (!rptP) rptP = new Promise(function (res, rej) {
+    var sc = document.createElement('script'); sc.src = 'reports.js?v=38'; sc.onload = res; sc.onerror = function () { rptP = null; rej(new Error('โหลดโมดูลรายงานไม่สำเร็จ ตรวจสอบอินเทอร์เน็ตแล้วลองใหม่')); };
+    document.head.appendChild(sc);
+  });
+  return rptP.then(function () { return fn(window.ELC_RPT); }).catch(function (e) { fail(e); toast(e.message, true); });
+}
+function printDoc(css, html) {
+  $('#printRoot').innerHTML = '<style>' + css + '</style>' + html;
+  document.body.classList.add('is-printing');
+  setTimeout(function () { window.print(); }, 200);
+}
+
+// ---------- V38: กระดิ่งแจ้งเตือน (เกินกำหนด / ใกล้ครบ / ถึงกำหนดตรวจ) ----------
+function bellCount() { var d = S.dash && S.dash.d; return d ? (d.overdue || 0) + (d.dueSoon ? d.dueSoon.length : 0) + (d.checkDue || 0) : 0; }
+function paintBell() {
+  var n = bellCount(), od = S.dash && S.dash.d && S.dash.d.overdue;
+  Array.prototype.forEach.call(document.querySelectorAll('.tbtn .bdg'), function (b) { b.hidden = !n; b.textContent = n > 99 ? '99+' : n; b.className = 'bdg' + (od ? ' bad' : ''); });
+}
+function refreshBell(force) {
+  if (!S.sess || document.hidden) return;
+  if (!force && S.dash && Date.now() - S.dash.ts < 120000) return;
+  API.call('dashboard').then(function (d) { S.dash = { ts: Date.now(), d: d }; paintBell(); }).catch(function () {});
+}
+function openBell() {
+  var show = function () {
+    var d = S.dash && S.dash.d; if (!d) return dlg('<div class="dh"><h2>การแจ้งเตือน</h2></div><div class="empty"><p>ไม่มีข้อมูล</p></div>');
+    var li = function (href, t, sub, badge) { return '<a class="li noth" href="' + href + '"><div class="mn"><div class="t">' + esc(t) + '</div><div class="s">' + esc(sub) + '</div></div>' + (badge || '') + '</a>'; };
+    var h = '<div class="dh"><h2>การแจ้งเตือน</h2></div><div class="bell-list">';
+    d.overdueLoans.forEach(function (l) { h += li('#/asset/' + esc(l.assetId) + '/return', (l.assetNo ? l.assetNo + ' · ' : '') + l.assetName, l.borrowerName + ' · ครบกำหนด ' + fmtDate(l.dueDate), '<span class="badge bad">เกิน ' + l.daysLate + ' วัน</span>'); });
+    d.dueSoon.forEach(function (l) { h += li('#/asset/' + esc(l.assetId) + '/return', (l.assetNo ? l.assetNo + ' · ' : '') + l.assetName, l.borrowerName + ' · ครบกำหนด ' + fmtDate(l.dueDate), '<span class="badge warn">' + (l.daysLeft === 0 ? 'วันนี้' : 'อีก ' + l.daysLeft + ' วัน') + '</span>'); });
+    d.checkList.forEach(function (a) { h += li('#/asset/' + esc(a.assetId) + '/check', (a.assetNo ? a.assetNo + ' · ' : '') + a.name, a.never ? 'ยังไม่เคยตรวจสภาพ' : 'ถึงกำหนดตรวจ ' + fmtDate(a.nextCheckDue), '<span class="badge warn">ตรวจสภาพ</span>'); });
+    if (!bellCount()) h += '<div class="empty"><p>ไม่มีรายการที่ต้องติดตาม</p></div>';
+    dlg(h + '</div>');
+  };
+  if (S.dash) show(); else API.call('dashboard').then(function (d) { S.dash = { ts: Date.now(), d: d }; paintBell(); show(); }).catch(function (e) { toast(e.message, true); });
+  refreshBell(true);
+}
+document.addEventListener('visibilitychange', function () { if (!document.hidden) refreshBell(false); });
+setInterval(function () { refreshBell(false); }, 300000);
+
+// ---------- V38: ค้นหาทั่วระบบ (ครุภัณฑ์ + รายการที่กำลังยืม) กด / หรือ Ctrl+K ----------
+var SQ = { loans: null };
+function openSearch() {
+  dlg('<div class="dh"><h2>ค้นหา</h2></div><div class="gs"><div class="q">' + icon('search') + '<label class="sr" for="gsq">ค้นหา</label><input id="gsq" type="search" placeholder="เลขครุภัณฑ์ / ชื่อ / ผู้ยืม / เบอร์โทร" autocomplete="off"></div><div id="gsr" class="list"><div class="empty">พิมพ์เพื่อค้นหา</div></div></div>');
+  var inp = $('#gsq'); if (inp) inp.focus();
+  Promise.all([getAssets(), SQ.loans ? Promise.resolve(SQ.loans) : API.call('loanList', { scope: 'open' })]).then(function (r) { SQ.loans = r[1]; paintSearch(); }).catch(function (e) { toast(e.message, true); });
+}
+function paintSearch() {
+  var el = $('#gsr'), inp = $('#gsq'); if (!el || !inp) return;
+  var q = inp.value.trim().toLowerCase();
+  if (!q) { el.innerHTML = '<div class="empty">พิมพ์เพื่อค้นหา</div>'; return; }
+  var hit = function (arr) { return arr.join(' ').toLowerCase().indexOf(q) >= 0; };
+  var rows = [];
+  (S.assets || []).forEach(function (a) { if (rows.length < 30 && hit([a.assetNo, a.name, a.assetId, a.serialNo, a.brand, a.model, a.location, a.custodian])) rows.push('<a class="li noth" href="#/asset/' + esc(a.assetId) + '"><div class="mn"><div class="t">' + esc((a.assetNo ? a.assetNo + ' · ' : '') + a.name) + '</div><div class="s">' + esc([a.category, a.location, a.loan ? 'ถูกยืมโดย ' + a.loan.borrowerName : a.status].filter(Boolean).join(' · ')) + '</div></div></a>'); });
+  (SQ.loans || []).forEach(function (l) { if (rows.length < 40 && hit([l.borrowerName, l.phone, l.borrowerHN])) rows.push('<a class="li noth" href="#/asset/' + esc(l.assetId) + '"><div class="mn"><div class="t">' + esc(l.borrowerName) + ' · ยืม ' + esc((l.assetNo ? l.assetNo + ' ' : '') + l.assetName) + '</div><div class="s">' + esc(l.phone || '') + ' · ครบกำหนด ' + esc(fmtDate(l.dueDate)) + '</div></div><span class="badge acc">ยืมอยู่</span></a>'); });
+  el.innerHTML = rows.length ? rows.join('') : '<div class="empty">ไม่พบรายการที่ตรงกับ "' + esc(inp.value.trim()) + '"</div>';
+}
+document.addEventListener('input', function (e) { if (e.target && e.target.id === 'gsq') paintSearch(); });
+document.addEventListener('click', function (e) { var a = e.target.closest && e.target.closest('#gsr a, .bell-list a'); if (a) { var d = $('#dlg'); if (d && d.open) d.close(); } });
+document.addEventListener('keydown', function (e) {
+  if (!S.sess) return;
+  var t = e.target, typing = t && (/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || t.isContentEditable);
+  if ((e.key === '/' && !typing && !e.ctrlKey && !e.metaKey) || ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K'))) { e.preventDefault(); var d = $('#dlg'); if (!(d && d.open)) openSearch(); }
+});
+
+// สะพานให้ reports.js (โหลดทีหลัง) ใช้ฟังก์ชันภายใน
+window.ELC_APP = { esc: esc, icon: icon, fmtDate: fmtDate, addDays: addDays, today: today, toast: toast, setView: setView, fail: fail, dlg: dlg, API: API, C: C, nav: function () { return navId; }, getAssets: getAssets, printDoc: printDoc };
+
 // ---------- เราท์เตอร์ ----------
 function route() {
   navId++; var nid = navId; stopScan(); document.body.classList.remove('is-printing'); var d = $('#dlg'); if (d && d.open) d.close();
@@ -533,9 +622,12 @@ function route() {
     if (k === 'print') return viewPrint(nid);
     if (k === 'scan') return viewScan(nid);
     if (k === 'log') return viewLog(nid);
+    if (k === 'reports') return withRpt(function (R) { R.reports(nid); });
+    if (k === 'calendar') return withRpt(function (R) { R.calendar(nid); });
     return viewDash(nid);
   }).catch(function (e) { fail(e, nid); });
 }
 window.addEventListener('hashchange', route);
 route();
+setTimeout(function () { refreshBell(false); }, 2500);
 })();

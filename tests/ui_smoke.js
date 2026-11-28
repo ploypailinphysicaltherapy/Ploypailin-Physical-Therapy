@@ -25,7 +25,7 @@ const plus=n=>run(`lc_addDays_(lc_today_(),${n})`);
 await T('login screen shown',async()=>{await until(()=>$('#loginForm'),'login');return 'ok'});
 await T('wrong PIN shows error',async()=>{set('#ln','พลอย');set('#lp','bad-pin');submit($('#loginForm'));await until(()=>!$('#loginErr').hidden,'err');return $('#loginErr').textContent});
 await T('login → dashboard',async()=>{set('#lp','admin-456');submit($('#loginForm'));await until(()=>$('#view h1')&&/ภาพรวมวันนี้/.test($('#view h1').textContent),'dash');return $('.who b').textContent});
-await T('nav has 6 items & current marked',()=>{const n=$$('.nav a');if(n.length!==6)throw new Error(n.length);if(!$('.nav a[aria-current=page]'))throw new Error('no current');return 'ok'});
+await T('nav has 8 items & current marked',()=>{const n=$$('.nav a');if(n.length!==8)throw new Error(n.length);if(!$('.nav a[aria-current=page]'))throw new Error('no current');return 'ok'});
 await T('open add form',async()=>{w.location.hash='#/asset/new';await until(()=>$('form[data-form=asset]'),'form');return 'ok'});
 await T('submit asset (XSS name)',async()=>{set('#f-name','<img src=x onerror=window.__xss=1>เครื่องวัดความดัน');set('#f-assetNo','BP-001');set('#f-category','เครื่องวัด');set('#f-location','ห้องตรวจ');submit($('form[data-form=asset]'));await until(()=>/#\/asset\/A\d+/.test(w.location.hash),'redirect');await until(()=>$('.hd h1'),'detail');if(w.__xss)throw new Error('XSS executed');if($('.hd h1 img'))throw new Error('img injected');return $('.hd h1').textContent.slice(0,30)});
 let id;

@@ -19,7 +19,7 @@
  */
 
 
-const LC_APP_VERSION = '1.2.0';
+const LC_APP_VERSION = '1.3.0';
 const LC_SCHEMA_VER = '1';
 const LC_SESSION_TTL = 21600;          // วินาที (สูงสุดของ CacheService = 6 ชม.)
 const LC_LOGIN_MAX_FAIL = 5;           // ใส่ PIN ผิดครบนี้ → ล็อกการเข้าสู่ระบบชั่วคราว
@@ -259,6 +259,7 @@ const LC_ROUTES = {
   assetCheckList:   { role: 'admin', fn: lc_apiCheckList_ },
   assetLogList:     { role: 'admin', fn: lc_apiLogList_ },
   loanList:      { role: 'admin', fn: lc_apiLoanList_ },
+  loanRange:     { role: 'admin', fn: lc_apiLoanRange_ },
   loanCheckout:  { role: 'admin', fn: lc_apiLoanCheckout_ },
   loanReturn:    { role: 'admin', fn: lc_apiLoanReturn_ },
   loanExtend:    { role: 'admin', fn: lc_apiLoanExtend_ },
@@ -530,6 +531,44 @@ function lc_apiLoanList_(a) {
     return list;
   }
   return list.reverse().slice(0, Math.max(1, Math.min(500, Number(a.limit) || 200)));
+}
+// V38: ประวัติการยืมตามช่วงวันที่ — ใช้กับหน้า "รายงาน" และ "ปฏิทินการยืม" (อ่านชีตครั้งเดียว ตอบแบบย่อ)
+//   args: { from:'yyyy-MM-dd', to:'yyyy-MM-dd' }  (ไม่ส่ง = 365 วันล่าสุด, สูงสุด 800 วัน)
+//   คืน: { from, to, today, loans:[รายการยืมที่ "ยืมในช่วง" หรือ "ยังไม่คืนและยืมก่อนช่วง"], truncated, assets:{ total, byStatus, byCategory } }
+const LC_RANGE_MAX_DAYS = 800;
+const LC_RANGE_MAX_ROWS = 5000;
+function lc_apiLoanRange_(a) {
+  const today = lc_today_();
+  let to = lc_isoOk_(a.to) ? a.to : today;
+  let from = lc_isoOk_(a.from) ? a.from : lc_addDays_(to, -364);
+  if (from > to) { const t = from; from = to; to = t; }
+  if (lc_daysBetween_(from, to) > LC_RANGE_MAX_DAYS) from = lc_addDays_(to, -LC_RANGE_MAX_DAYS);
+  const S = lc_sheets_();
+  const all = lc_readLoans_(S.loan);
+  const rows = [];
+  all.forEach(function (l) {
+    const inRange = l.loanDate && l.loanDate >= from && l.loanDate <= to;
+    const stillOut = l.status === LC_LOAN_OPEN && l.loanDate && l.loanDate < from;
+    if (!inRange && !stillOut) return;
+    lc_decorateLoan_(l, today);
+    rows.push({
+      loanId: l.loanId, assetId: l.assetId, assetNo: l.assetNo, assetName: l.assetName,
+      borrowerName: l.borrowerName, borrowerType: l.borrowerType, phone: l.phone,
+      loanDate: l.loanDate, dueDate: l.dueDate, returnDate: l.returnDate, status: l.status,
+      overdue: l.overdue, daysLate: l.daysLate, conditionOut: l.conditionOut, conditionIn: l.conditionIn, note: l.note
+    });
+  });
+  rows.sort(function (x, y) { return String(y.loanDate).localeCompare(String(x.loanDate)); });
+  const truncated = rows.length > LC_RANGE_MAX_ROWS;
+  const byStatus = {}, byCategory = {};
+  let total = 0;
+  lc_liveAssets_(S).forEach(function (o) {
+    if (o.status === LC_STATUSES[4]) return;
+    total++;
+    byStatus[o.status] = (byStatus[o.status] || 0) + 1;
+    const c = o.category || 'ไม่ระบุหมวด'; byCategory[c] = (byCategory[c] || 0) + 1;
+  });
+  return { from: from, to: to, today: today, loans: truncated ? rows.slice(0, LC_RANGE_MAX_ROWS) : rows, truncated: truncated, assets: { total: total, byStatus: byStatus, byCategory: byCategory } };
 }
 function lc_apiLoanCheckout_(d, s) {
   const name = lc_txt_(d.borrowerName, 100);
@@ -822,6 +861,7 @@ function lc_apiScan_(a) {
   }
   return {
     valid: true, assetId: o.assetId, assetNo: o.assetNo, name: o.name, category: o.category, location: o.location, custodian: o.custodian,
+    brand: o.brand, model: o.model, spec: o.spec, acquireMethod: o.acquireMethod,   // ✅ V33: ตอบ "นี่คืออะไร มาจากไหน" (ยังไม่เปิดเผย ราคา / Serial / ผู้ขาย / ชื่อผู้ยืม)
     status: o.status, loanState: loanState, dueDate: due, lastCheckAt: o.lastCheckAt, lastCheckResult: o.lastCheckResult,
     nextCheckDue: o.nextCheckDue, checkDue: lc_checkInfo_(o, today), thumb: o.thumb || ''
   };
